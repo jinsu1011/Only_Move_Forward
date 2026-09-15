@@ -1,4 +1,4 @@
-"""전진만할게요 API (/api/v1). 제출 명세 api/design.yml 과 같은 경로·필드를 쓴다."""
+"""전진만할게요 API (/api/v1). 제출 명세 제출/최종본/*-API.yml 과 같은 경로·필드를 쓴다."""
 from __future__ import annotations
 
 import hashlib
