@@ -1,0 +1,295 @@
+// 승인 검토용 초안. 자동 파서 및 dbdiagram 렌더 검증 전.
+Project license_fit {
+ database_type: 'PostgreSQL'
+ Note: '웹 운전면허 학습. 규칙과 문항 버전은 불변, 과거 시도 보존.'
+}
+
+Enum LicenseType {
+  CLASS1_ORDINARY
+  CLASS2_ORDINARY
+}
+
+Enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+Enum QuestionKind {
+  OFFICIAL
+  PRACTICE
+  AI_GENERATED_PRACTICE
+}
+
+Enum AttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+  ABORTED
+}
+
+Enum SupportLevel {
+  A
+  B
+  C
+}
+
+Enum TrainingKind {
+  FUNCTION
+  ROAD
+}
+
+Enum TrainingStatus {
+  RUNNING
+  PAUSED
+  COMPLETED
+  DISQUALIFIED
+  ABORTED
+}
+
+Enum AiKind {
+  EXPLANATION
+  REPORT
+  QA
+}
+
+Enum AiStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  INSUFFICIENT_DATA
+  INSUFFICIENT_EVIDENCE
+  FAILED
+}
+
+Table users {
+  id uuid [pk]
+  email varchar(254) [not null, unique]
+  password_hash text [not null]
+  nickname varchar(40) [not null]
+  license_type LicenseType [not null]
+  created_at timestamptz [not null]
+}
+
+Table auth_sessions {
+  id uuid [pk]
+  user_id uuid [not null, ref: > users.id]
+  token_hash text [not null, unique]
+  expires_at timestamptz [not null]
+  revoked_at timestamptz
+}
+
+Table official_sources {
+  id uuid [pk]
+  title text [not null]
+  publisher text [not null]
+  url text [not null]
+  version varchar(80) [not null]
+  effective_from date
+  effective_to date
+  retrieved_at timestamptz [not null]
+  sha256 varchar(64)
+  reuse_terms text [not null]
+  review_status ReviewStatus [not null]
+  indexes {
+    (url, version) [unique]
+  }
+}
+
+Table source_chunks {
+  id uuid [pk]
+  source_id uuid [not null, ref: > official_sources.id]
+  locator text [not null]
+  content text [not null]
+}
+
+Table guide_steps {
+  id uuid [pk]
+  source_id uuid [not null, ref: > official_sources.id]
+  license_type LicenseType [not null]
+  step_order int [not null]
+  title text [not null]
+  content text [not null]
+  indexes {
+    (source_id, license_type, step_order) [unique]
+  }
+}
+
+Table categories {
+  id varchar(40) [pk]
+  name_ko varchar(80) [not null]
+}
+
+Table questions {
+  id uuid [pk]
+  source_id uuid [not null, ref: > official_sources.id]
+  category_id varchar(40) [not null, ref: > categories.id]
+  source_number varchar(80) [not null]
+  kind QuestionKind [not null]
+  license_scope varchar(20) [not null]
+  prompt text [not null]
+  media_url text
+  points int [not null]
+  required_selections int [not null]
+  official_explanation text
+  review_status ReviewStatus [not null]
+}
+
+Table question_options {
+  id uuid [pk]
+  question_id uuid [not null, ref: > questions.id]
+  position int [not null]
+  content text [not null]
+  is_correct boolean [not null]
+  indexes {
+    (question_id, position) [unique]
+  }
+}
+
+Table written_attempts {
+  id uuid [pk]
+  user_id uuid [not null, ref: > users.id]
+  license_type LicenseType [not null]
+  mode varchar(20) [not null]
+  status AttemptStatus [not null]
+  started_at timestamptz [not null]
+  submitted_at timestamptz
+  score int
+  max_score int
+  outcome varchar(30)
+  indexes {
+    (user_id, started_at)
+  }
+}
+
+Table attempt_questions {
+  id uuid [pk]
+  attempt_id uuid [not null, ref: > written_attempts.id]
+  question_id uuid [not null, ref: > questions.id]
+  position int [not null]
+  indexes {
+    (attempt_id, position) [unique]
+    (attempt_id, question_id) [unique]
+  }
+}
+
+Table written_answers {
+  id uuid [pk]
+  attempt_question_id uuid [not null, unique, ref: > attempt_questions.id]
+  is_correct boolean
+  earned_points int
+  updated_at timestamptz [not null]
+}
+
+Table answer_selections {
+  answer_id uuid [not null, ref: > written_answers.id]
+  option_id uuid [not null, ref: > question_options.id]
+  indexes {
+    (answer_id, option_id) [pk]
+  }
+}
+
+Table official_scoring_rules {
+  id uuid [pk]
+  source_id uuid [not null, ref: > official_sources.id]
+  category_id varchar(40) [not null, ref: > categories.id]
+  official_locator text [not null]
+  internal_code varchar(40) [not null]
+  name_ko text [not null]
+  description text [not null]
+  deduction_points int
+  is_disqualification boolean [not null]
+  support SupportLevel [not null]
+  limitations text [not null]
+  effective_from date [not null]
+  effective_to date
+  detector_version varchar(60)
+  enabled boolean [not null]
+  indexes {
+    (source_id, internal_code) [unique]
+  }
+}
+
+Table scenarios {
+  id uuid [pk]
+  kind TrainingKind [not null]
+  title text [not null]
+  version varchar(40) [not null]
+  definition jsonb [not null]
+}
+
+Table scenario_rules {
+  scenario_id uuid [not null, ref: > scenarios.id]
+  rule_id uuid [not null, ref: > official_scoring_rules.id]
+  indexes {
+    (scenario_id, rule_id) [pk]
+  }
+}
+
+Table training_sessions {
+  id uuid [pk]
+  user_id uuid [not null, ref: > users.id]
+  scenario_id uuid [not null, ref: > scenarios.id]
+  input_mode varchar(20) [not null]
+  calibration_snapshot jsonb
+  status TrainingStatus [not null]
+  verification_status varchar(20) [not null]
+  started_at timestamptz [not null]
+  ended_at timestamptz
+  input_log jsonb
+  score int
+  outcome varchar(30)
+  disqualification_rule_id uuid [ref: > official_scoring_rules.id]
+  indexes {
+    (user_id, started_at)
+  }
+}
+
+Table driving_events {
+  id uuid [pk]
+  session_id uuid [not null, ref: > training_sessions.id]
+  rule_id uuid [ref: > official_scoring_rules.id]
+  category_id varchar(40) [not null, ref: > categories.id]
+  event_key varchar(100) [not null]
+  at_ms int [not null]
+  evidence jsonb [not null]
+  judgement varchar(20) [not null]
+  deducted_points int [not null]
+  indexes {
+    (session_id, event_key) [unique]
+  }
+}
+
+Table ai_jobs {
+  id uuid [pk]
+  user_id uuid [not null, ref: > users.id]
+  kind AiKind [not null]
+  answer_id uuid [ref: > written_answers.id]
+  prompt text
+  status AiStatus [not null]
+  evidence_snapshot jsonb [not null]
+  result jsonb
+  model_version varchar(80)
+  prompt_version varchar(40) [not null]
+  error_code varchar(40)
+  created_at timestamptz [not null]
+}
+
+Table ai_citations {
+  id uuid [pk]
+  job_id uuid [not null, ref: > ai_jobs.id]
+  chunk_id uuid [not null, ref: > source_chunks.id]
+  claim_key varchar(80) [not null]
+}
+
+Table idempotency_keys {
+ id uuid [pk]
+ user_id uuid [not null, ref: > users.id]
+ path varchar(120) [not null]
+ request_key uuid [not null]
+ body_hash varchar(64) [not null]
+ response jsonb [not null]
+ expires_at timestamptz [not null]
+ indexes {
+  (user_id, path, request_key) [unique]
+ }
+}

@@ -1,0 +1,16 @@
+Known pipe types:
+  CocoaGraphicsPipe
+(3 aux display modules not yet loaded.)
+:pnmimage:png(warning): iCCP: known incorrect sRGB profile
+info: Using primary monitor: Monitor(x=0, y=0, width=1512, height=982, width_mm=None, height_mm=None, name=None, is_primary=True)
+set window position: Vec2(206, 141)
+package_folder: /Users/kimjinsoo/Library/Mobile Documents/com~apple~CloudDocs/SKALA/개인프로젝트/driving_game/.venv/lib/python3.14/site-packages/ursina
+asset_folder: .
+os: Darwin
+python version: 3.14.6 (main, Jun 10 2026, 10:03:53) [Clang 21.0.0 (clang-2100.0.123.102)]
+ursina version: 8.3.0
+development mode: False
+application successfully started
+MOCK SENSOR INTEGRATION: PASS (setup, steering, C recalibration, disconnect fallback)
+RENDERED INTEGRATION: PASS (movement, steering, red fine, property/car collisions, bankruptcy, restart)
+GUI SMOKE: PASS

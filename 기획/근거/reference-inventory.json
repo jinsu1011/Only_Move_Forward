@@ -1,0 +1,32 @@
+[
+  {
+    "source": "/Users/kimjinsoo/Library/Mobile Documents/com~apple~CloudDocs/SKALA/미니프로젝트1/참고자료/SKALA교육플랫폼-API.yml",
+    "copy": "/Users/kimjinsoo/Library/Mobile Documents/com~apple~CloudDocs/SKALA/미니프로젝트1_ver(2)/참고자료/SKALA교육플랫폼-API.yml",
+    "sha256": "ec783a192ff1e7c7511ba66ba7aa2e98b5c2658da33a74e767b068ad124149ca",
+    "copy_matches_source": true
+  },
+  {
+    "source": "/Users/kimjinsoo/Library/Mobile Documents/com~apple~CloudDocs/SKALA/미니프로젝트1/참고자료/9반_평가기준.pdf",
+    "copy": "/Users/kimjinsoo/Library/Mobile Documents/com~apple~CloudDocs/SKALA/미니프로젝트1_ver(2)/참고자료/9반_평가기준.pdf",
+    "sha256": "f9e2f070dc66fe3e9c842a03705c41b4239be2d3941c54e2f7b68b6598214b28",
+    "copy_matches_source": true
+  },
+  {
+    "source": "/Users/kimjinsoo/Library/Mobile Documents/com~apple~CloudDocs/SKALA/미니프로젝트1/참고자료/과제안내_AI웹서비스설계_Mini-project.pdf",
+    "copy": "/Users/kimjinsoo/Library/Mobile Documents/com~apple~CloudDocs/SKALA/미니프로젝트1_ver(2)/참고자료/과제안내_AI웹서비스설계_Mini-project.pdf",
+    "sha256": "d8f8fcbb20bb47ec0b563b383541623e6e2229b20309880c0340e2b2a0dbf539",
+    "copy_matches_source": true
+  },
+  {
+    "source": "/Users/kimjinsoo/Library/Mobile Documents/com~apple~CloudDocs/SKALA/미니프로젝트1/참고자료/SKALA교육플랫폼-DB.dbml",
+    "copy": "/Users/kimjinsoo/Library/Mobile Documents/com~apple~CloudDocs/SKALA/미니프로젝트1_ver(2)/참고자료/SKALA교육플랫폼-DB.dbml",
+    "sha256": "746676b86c578f8131b23a5654ffd9d1581373015d2f397da87e013728c371d6",
+    "copy_matches_source": true
+  },
+  {
+    "source": "/Users/kimjinsoo/Library/Mobile Documents/com~apple~CloudDocs/SKALA/미니프로젝트1/참고자료/AI캠퍼스_Full-stack Engineering_7. AI 웹 서비스 설계 Mini-project_참고자료.pdf",
+    "copy": "/Users/kimjinsoo/Library/Mobile Documents/com~apple~CloudDocs/SKALA/미니프로젝트1_ver(2)/참고자료/AI캠퍼스_Full-stack Engineering_7. AI 웹 서비스 설계 Mini-project_참고자료.pdf",
+    "sha256": "1bb07a2b79bd8b892a6c2354a35fe9aa9eead6f6745d33ab940d0dda1c6959a6",
+    "copy_matches_source": true
+  }
+]

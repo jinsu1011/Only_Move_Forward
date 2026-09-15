@@ -1,0 +1,24 @@
+test_collision_geometry (test_game.GameTests.test_collision_geometry) ... ok
+test_cycle_crossing_and_rearm (test_game.GameTests.test_cycle_crossing_and_rearm) ... ok
+test_fines_cooldown_bankruptcy_reset (test_game.GameTests.test_fines_cooldown_bankruptcy_reset) ... ok
+test_movement_brake_reverse (test_game.GameTests.test_movement_brake_reverse) ... ok
+test_calibration_deadzone_mapping_clamp (test_game.SensorTests.test_calibration_deadzone_mapping_clamp) ... ok
+test_parser_and_partial_stream (test_game.SensorTests.test_parser_and_partial_stream) ... ok
+test_pitch_mapping_keyboard_priority_disconnect (test_game.SensorTests.test_pitch_mapping_keyboard_priority_disconnect) ... ok
+test_real_pyserial_loopback (test_game.SensorTests.test_real_pyserial_loopback) ... ok
+test_serial_exception (test_game.SensorTests.test_serial_exception) ... ok
+test_smoothing_and_disconnect_fallback (test_game.SensorTests.test_smoothing_and_disconnect_fallback) ... ok
+test_two_axis_protocols (test_game.SensorTests.test_two_axis_protocols) ... ok
+test_final_center_and_live_sensor_required_to_start (test_game.SetupTests.test_final_center_and_live_sensor_required_to_start) ... ok
+test_full_flow_needs_explicit_start (test_game.SetupTests.test_full_flow_needs_explicit_start) ... ok
+test_keyboard_all_four_directions_and_release (test_game.SetupTests.test_keyboard_all_four_directions_and_release) ... ok
+test_no_device_falls_back_to_keyboard_checks (test_game.SetupTests.test_no_device_falls_back_to_keyboard_checks) ... ok
+test_reset_every_stage_clears_checks_and_alignment (test_game.SetupTests.test_reset_every_stage_clears_checks_and_alignment) ... ok
+test_roll_only_cannot_pass_pitch_check (test_game.SetupTests.test_roll_only_cannot_pass_pitch_check) ... ok
+test_still_center_and_enough_samples_required (test_game.SetupTests.test_still_center_and_enough_samples_required) ... ok
+test_wrong_direction_diagonal_and_short_pulse_rejected (test_game.SetupTests.test_wrong_direction_diagonal_and_short_pulse_rejected) ... ok
+
+----------------------------------------------------------------------
+Ran 19 tests in 0.019s
+
+OK

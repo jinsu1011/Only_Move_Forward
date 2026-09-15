@@ -1,0 +1,28 @@
+{
+  "name": "only-move-forward-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5180 --strictPort",
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc -b",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-router-dom": "7.6.0",
+    "three": "0.180.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.4",
+    "@types/react-dom": "19.1.5",
+    "@types/three": "0.180.0",
+    "@types/w3c-web-serial": "1.0.8",
+    "@vitejs/plugin-react": "4.4.1",
+    "typescript": "5.8.3",
+    "vite": "6.3.5",
+    "vitest": "3.1.3"
+  }
+}

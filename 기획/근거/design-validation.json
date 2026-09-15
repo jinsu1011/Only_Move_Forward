@@ -1,0 +1,17 @@
+{
+  "api_paths": 21,
+  "resolved_refs": 134,
+  "screens": 17,
+  "rules": 57,
+  "prototype_changes": [],
+  "screen_api_path_omissions": [],
+  "limitations": [
+    "not Swagger UI validation",
+    "not dbdiagram render validation",
+    "not runtime API tests",
+    "not hardware tests",
+    "not final PDF"
+  ],
+  "dbml_table_count": 20,
+  "visual_review": "HTML top viewport only"
+}

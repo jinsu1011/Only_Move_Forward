@@ -1,0 +1,15 @@
+test_collision_geometry (test_game.GameTests.test_collision_geometry) ... ok
+test_cycle_crossing_and_rearm (test_game.GameTests.test_cycle_crossing_and_rearm) ... ok
+test_fines_cooldown_bankruptcy_reset (test_game.GameTests.test_fines_cooldown_bankruptcy_reset) ... ok
+test_movement_brake_reverse (test_game.GameTests.test_movement_brake_reverse) ... ok
+test_calibration_deadzone_mapping_clamp (test_game.SensorTests.test_calibration_deadzone_mapping_clamp) ... ok
+test_parser_and_partial_stream (test_game.SensorTests.test_parser_and_partial_stream) ... ok
+test_real_pyserial_loopback (test_game.SensorTests.test_real_pyserial_loopback) ... ok
+test_serial_exception (test_game.SensorTests.test_serial_exception) ... ok
+test_setup_flow_average_and_fallback (test_game.SensorTests.test_setup_flow_average_and_fallback) ... ok
+test_smoothing_and_disconnect_fallback (test_game.SensorTests.test_smoothing_and_disconnect_fallback) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.006s
+
+OK

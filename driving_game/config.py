@@ -1,0 +1,33 @@
+"""Small, editable settings. Distances are metres; speed is metres/second."""
+START_MONEY = 0
+RED_LIGHT_FINE = 500
+COLLISION_FINE = 1000
+BANKRUPTCY_THRESHOLD = -5000
+COLLISION_COOLDOWN = 1.5
+SERIAL_BAUD = 115200
+SENSOR_TIMEOUT = 1.0
+DEAD_ZONE = 4.0
+MAX_ROLL = 30.0
+SMOOTHING = 8.0
+STEERING_SIGN = 1.0  # Change to -1 if the sensor is mounted in reverse.
+MAX_SPEED = 22.0
+REVERSE_SPEED = 7.0
+ACCELERATION = 8.0
+BRAKING = 14.0
+STRONG_BRAKING = 26.0
+STEERING_RATE = 65.0
+GREEN_SECONDS = 9.0
+YELLOW_SECONDS = 3.0
+RED_SECONDS = 8.0
+START_POSITION = (0.0, -22.0)
+ROAD_HALF_WIDTH = 6.0
+# Pre-drive alignment and four-direction checks.
+PITCH_SIGN = -1.0  # Positive processed pitch means forward; F flips this in setup.
+CENTER_SECONDS = 3.0
+CENTER_MIN_SAMPLES = 30
+CENTER_MAX_SPREAD = 3.0
+CONNECT_SECONDS = 5.0
+CHECK_ANGLE = 10.0
+CHECK_CROSS_LIMIT = 8.0
+CHECK_HOLD_SECONDS = 0.35
+MAX_PITCH = 25.0

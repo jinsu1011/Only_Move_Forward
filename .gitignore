@@ -1,0 +1,37 @@
+# 설치물 (노트북마다 새로 만든다. 심볼릭 링크도 제외하려고 슬래시 없이 적는다)
+node_modules
+deps.nosync
+.venv
+.venv.nosync
+*.nosync
+dist
+*.tsbuildinfo
+__pycache__
+*.pyc
+.pytest_cache
+
+.DS_Store
+.env
+.env.local
+
+# 로컬 DB
+data/local/*.db
+data/local/*.db-*
+
+# iCloud 충돌 사본 ("node_modules 2", ".venv 2")
+* [0-9]
+
+# 수업 배포 자료와 그 추출본·캡처는 저장소에 올리지 않는다. 요약은 기획/조사/reference-review.md
+/참고자료/
+/기획/근거/9반_평가기준.txt
+/기획/근거/AI캠퍼스_*.txt
+/기획/근거/과제안내_*.txt
+/기획/근거/examples-*.png
+/기획/근거/example-overview-*.png
+/기획/근거/rubric-*.png
+
+# 화면 렌더 검증에 쓴 임시 브라우저 프로필(쿠키 포함)
+**/chrome-profile/
+
+# 기존 파이썬 프로토타입의 가상환경
+driving_game/.venv

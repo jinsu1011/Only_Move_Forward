@@ -1,0 +1,1679 @@
+---
+openapi: 3.0.3
+info:
+  title: 면허핏 설계 검토 API
+  version: 0.1.0-draft
+  description: 구현 전 제안. 최종 제출용 검증 및 세부 제약 확정 전.
+servers:
+- url: "/api/v1"
+tags:
+- name: ai
+- name: auth
+- name: dashboard
+- name: guide
+- name: me
+- name: scenarios
+- name: training
+- name: written
+security:
+- sessionCookie: []
+paths:
+  "/auth/signup":
+    post:
+      operationId: signup
+      tags:
+      - auth
+      summary: 회원가입
+      description: 구현 전 설계 초안. 소유권을 세션 사용자로 검증한다. 정답·점수는 서버 계산. 세부 조건은 docs/api-design.md
+        참조.
+      responses:
+        '201':
+          description: 처리 성공
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/users"
+        '400':
+          "$ref": "#/components/responses/E400"
+        '409':
+          "$ref": "#/components/responses/E409"
+        '429':
+          "$ref": "#/components/responses/E429"
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Signup"
+  "/auth/login":
+    post:
+      operationId: login
+      tags:
+      - auth
+      summary: 로그인·세션 쿠키 발급
+      description: 구현 전 설계 초안. 소유권을 세션 사용자로 검증한다. 정답·점수는 서버 계산. 세부 조건은 docs/api-design.md
+        참조.
+      responses:
+        '200':
+          description: 처리 성공
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/users"
+        '400':
+          "$ref": "#/components/responses/E400"
+        '401':
+          "$ref": "#/components/responses/E401"
+        '429':
+          "$ref": "#/components/responses/E429"
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/Login"
+  "/auth/logout":
+    post:
+      operationId: logout
+      tags:
+      - auth
+      summary: 현재 세션 폐기
+      description: 구현 전 설계 초안. 소유권을 세션 사용자로 검증한다. 정답·점수는 서버 계산. 세부 조건은 docs/api-design.md
+        참조.
+      responses:
+        '204':
+          description: 처리 성공
+        '401':
+          "$ref": "#/components/responses/E401"
+        '403':
+          "$ref": "#/components/responses/E403"
+  "/me":
+    get:
+      operationId: getMe
+      tags:
+      - me
+      summary: 내 공개 프로필
+      description: 구현 전 설계 초안. 소유권을 세션 사용자로 검증한다. 정답·점수는 서버 계산. 세부 조건은 docs/api-design.md
+        참조.
+      responses:
+        '200':
+          description: 처리 성공
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/users"
+        '401':
+          "$ref": "#/components/responses/E401"
+  "/dashboard":
+    get:
+      operationId: getDashboard
+      tags:
+      - dashboard
+      summary: 내 학습 요약
+      description: 구현 전 설계 초안. 소유권을 세션 사용자로 검증한다. 정답·점수는 서버 계산. 세부 조건은 docs/api-design.md
+        참조.
+      responses:
+        '200':
+          description: 처리 성공
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Dashboard"
+        '401':
+          "$ref": "#/components/responses/E401"
+  "/guide":
+    get:
+      operationId: getGuide
+      tags:
+      - guide
+      summary: 면허종별 공식 안내
+      description: 구현 전 설계 초안. 소유권을 세션 사용자로 검증한다. 정답·점수는 서버 계산. 세부 조건은 docs/api-design.md
+        참조.
+      responses:
+        '200':
+          description: 처리 성공
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Guide"
+        '400':
+          "$ref": "#/components/responses/E400"
+        '503':
+          "$ref": "#/components/responses/E503"
+      security: []
+      parameters:
+      - name: license_type
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+          - CLASS1_ORDINARY
+          - CLASS2_ORDINARY
+  "/written/catalog":
+    get:
+      operationId: getWrittenCatalog
+      tags:
+      - written
+      summary: 검수된 연습 자료 목록
+      description: 구현 전 설계 초안. 소유권을 세션 사용자로 검증한다. 정답·점수는 서버 계산. 세부 조건은 docs/api-design.md
+        참조.
+      responses:
+        '200':
+          description: 처리 성공
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/WrittenCatalog"
+        '401':
+          "$ref": "#/components/responses/E401"
+        '503':
+          "$ref": "#/components/responses/E503"
+  "/written/attempts":
+    post:
+      operationId: createAttempt
+      tags:
+      - written
+      summary: 새 필기 시도
+      description: 구현 전 설계 초안. 소유권을 세션 사용자로 검증한다. 정답·점수는 서버 계산. 세부 조건은 docs/api-design.md
+        참조.
+      responses:
+        '201':
+          description: 처리 성공
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/AttemptDetail"
+        '400':
+          "$ref": "#/components/responses/E400"
+        '401':
+          "$ref": "#/components/responses/E401"
+        '409':
+          "$ref": "#/components/responses/E409"
+        '503':
+          "$ref": "#/components/responses/E503"
+        '403':
+          "$ref": "#/components/responses/E403"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/AttemptCreate"
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+  "/written/attempts/{id}":
+    get:
+      operationId: getAttempt
+      tags:
+      - written
+      summary: 진행 중 문항·저장 답안
+      description: 구현 전 설계 초안. 소유권을 세션 사용자로 검증한다. 정답·점수는 서버 계산. 세부 조건은 docs/api-design.md
+        참조.
+      responses:
+        '200':
+          description: 처리 성공
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/AttemptDetail"
+        '401':
+          "$ref": "#/components/responses/E401"
+        '404':
+          "$ref": "#/components/responses/E404"
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+  "/written/attempts/{id}/answers/{questionId}":
+    put:
+      operationId: saveAnswer
+      tags:
+      - written
+      summary: 선택 답안 저장
+      description: 구현 전 설계 초안. 소유권을 세션 사용자로 검증한다. 정답·점수는 서버 계산. 세부 조건은 docs/api-design.md
+        참조.
+      responses:
+        '200':
+          description: 처리 성공
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/AnswerWrite"
+        '400':
+          "$ref": "#/components/responses/E400"
+        '401':
+          "$ref": "#/components/responses/E401"
+        '404':
+          "$ref": "#/components/responses/E404"
+        '409':
+          "$ref": "#/components/responses/E409"
+        '403':
+          "$ref": "#/components/responses/E403"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/AnswerWrite"
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: questionId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+  "/written/attempts/{id}/submit":
+    post:
+      operationId: submitAttempt
+      tags:
+      - written
+      summary: 서버 정답 채점·제출 확정
+      description: 구현 전 설계 초안. 소유권을 세션 사용자로 검증한다. 정답·점수는 서버 계산. 세부 조건은 docs/api-design.md
+        참조.
+      responses:
+        '200':
+          description: 처리 성공
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/WrittenResult"
+        '401':
+          "$ref": "#/components/responses/E401"
+        '404':
+          "$ref": "#/components/responses/E404"
+        '409':
+          "$ref": "#/components/responses/E409"
+        '403':
+          "$ref": "#/components/responses/E403"
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+  "/written/attempts/{id}/result":
+    get:
+      operationId: getWrittenResult
+      tags:
+      - written
+      summary: 본인 제출 결과
+      description: 구현 전 설계 초안. 소유권을 세션 사용자로 검증한다. 정답·점수는 서버 계산. 세부 조건은 docs/api-design.md
+        참조.
+      responses:
+        '200':
+          description: 처리 성공
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/WrittenResult"
+        '401':
+          "$ref": "#/components/responses/E401"
+        '404':
+          "$ref": "#/components/responses/E404"
+        '409':
+          "$ref": "#/components/responses/E409"
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+  "/written/answers/{id}":
+    get:
+      operationId: reviewAnswer
+      tags:
+      - written
+      summary: 제출된 답안의 검수 정답·해설
+      description: 구현 전 설계 초안. 소유권을 세션 사용자로 검증한다. 정답·점수는 서버 계산. 세부 조건은 docs/api-design.md
+        참조.
+      responses:
+        '200':
+          description: 처리 성공
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/AnswerReview"
+        '401':
+          "$ref": "#/components/responses/E401"
+        '404':
+          "$ref": "#/components/responses/E404"
+        '409':
+          "$ref": "#/components/responses/E409"
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+  "/scenarios":
+    get:
+      operationId: listScenarios
+      tags:
+      - scenarios
+      summary: 연습 가능한 코스
+      description: 구현 전 설계 초안. 소유권을 세션 사용자로 검증한다. 정답·점수는 서버 계산. 세부 조건은 docs/api-design.md
+        참조.
+      responses:
+        '200':
+          description: 처리 성공
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/scenarios"
+        '400':
+          "$ref": "#/components/responses/E400"
+        '401':
+          "$ref": "#/components/responses/E401"
+      parameters:
+      - name: kind
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+          - FUNCTION
+          - ROAD
+  "/scenarios/{id}/rules":
+    get:
+      operationId: getRules
+      tags:
+      - scenarios
+      summary: 코스 버전과 지원 규칙
+      description: 구현 전 설계 초안. 소유권을 세션 사용자로 검증한다. 정답·점수는 서버 계산. 세부 조건은 docs/api-design.md
+        참조.
+      responses:
+        '200':
+          description: 처리 성공
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Rules"
+        '401':
+          "$ref": "#/components/responses/E401"
+        '404':
+          "$ref": "#/components/responses/E404"
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+  "/training/sessions":
+    post:
+      operationId: startTraining
+      tags:
+      - training
+      summary: 새 주행 시도
+      description: 구현 전 설계 초안. 소유권을 세션 사용자로 검증한다. 정답·점수는 서버 계산. 세부 조건은 docs/api-design.md
+        참조.
+      responses:
+        '201':
+          description: 처리 성공
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/training_sessions"
+        '400':
+          "$ref": "#/components/responses/E400"
+        '401':
+          "$ref": "#/components/responses/E401"
+        '409':
+          "$ref": "#/components/responses/E409"
+        '403':
+          "$ref": "#/components/responses/E403"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/TrainingCreate"
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+  "/training/sessions/{id}/complete":
+    post:
+      operationId: completeTraining
+      tags:
+      - training
+      summary: 입력 검증 후 서버 판정
+      description: 구현 전 설계 초안. 소유권을 세션 사용자로 검증한다. 정답·점수는 서버 계산. 세부 조건은 docs/api-design.md
+        참조.
+      responses:
+        '200':
+          description: 처리 성공
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/TrainingResult"
+        '400':
+          "$ref": "#/components/responses/E400"
+        '401':
+          "$ref": "#/components/responses/E401"
+        '404':
+          "$ref": "#/components/responses/E404"
+        '409':
+          "$ref": "#/components/responses/E409"
+        '413':
+          "$ref": "#/components/responses/E413"
+        '403':
+          "$ref": "#/components/responses/E403"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/TrainingComplete"
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+  "/training/sessions/{id}/abort":
+    post:
+      operationId: abortTraining
+      tags:
+      - training
+      summary: R 재시작 등으로 기존 시도 중단
+      description: 구현 전 설계 초안. 소유권을 세션 사용자로 검증한다. 정답·점수는 서버 계산. 세부 조건은 docs/api-design.md
+        참조.
+      responses:
+        '200':
+          description: 처리 성공
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/training_sessions"
+        '401':
+          "$ref": "#/components/responses/E401"
+        '404':
+          "$ref": "#/components/responses/E404"
+        '409':
+          "$ref": "#/components/responses/E409"
+        '403':
+          "$ref": "#/components/responses/E403"
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+  "/training/sessions/{id}":
+    get:
+      operationId: getTraining
+      tags:
+      - training
+      summary: 본인 주행 결과
+      description: 구현 전 설계 초안. 소유권을 세션 사용자로 검증한다. 정답·점수는 서버 계산. 세부 조건은 docs/api-design.md
+        참조.
+      responses:
+        '200':
+          description: 처리 성공
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/TrainingResult"
+        '401':
+          "$ref": "#/components/responses/E401"
+        '404':
+          "$ref": "#/components/responses/E404"
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+  "/ai/jobs":
+    post:
+      operationId: createAiJob
+      tags:
+      - ai
+      summary: AI 해설·보고서·Q&A 요청
+      description: 구현 전 설계 초안. 소유권을 세션 사용자로 검증한다. 정답·점수는 서버 계산. 세부 조건은 docs/api-design.md
+        참조.
+      responses:
+        '202':
+          description: 처리 성공
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/ai_jobs"
+        '400':
+          "$ref": "#/components/responses/E400"
+        '401':
+          "$ref": "#/components/responses/E401"
+        '404':
+          "$ref": "#/components/responses/E404"
+        '409':
+          "$ref": "#/components/responses/E409"
+        '429':
+          "$ref": "#/components/responses/E429"
+        '503':
+          "$ref": "#/components/responses/E503"
+        '403':
+          "$ref": "#/components/responses/E403"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/AiCreate"
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      operationId: listAiJobs
+      tags:
+      - ai
+      summary: 본인 AI 작업 이력
+      description: 구현 전 설계 초안. 소유권을 세션 사용자로 검증한다. 정답·점수는 서버 계산. 세부 조건은 docs/api-design.md
+        참조.
+      responses:
+        '200':
+          description: 처리 성공
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  "$ref": "#/components/schemas/ai_jobs"
+        '400':
+          "$ref": "#/components/responses/E400"
+        '401':
+          "$ref": "#/components/responses/E401"
+      parameters:
+      - name: kind
+        in: query
+        schema:
+          type: string
+          enum:
+          - REPORT
+          - QA
+          - EXPLANATION
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 20
+          minimum: 1
+          maximum: 100
+      - name: before
+        in: query
+        schema:
+          type: string
+          format: date-time
+  "/ai/jobs/{id}":
+    get:
+      operationId: getAiJob
+      tags:
+      - ai
+      summary: 작업 상태·답변·출처
+      description: 구현 전 설계 초안. 소유권을 세션 사용자로 검증한다. 정답·점수는 서버 계산. 세부 조건은 docs/api-design.md
+        참조.
+      responses:
+        '200':
+          description: 처리 성공
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/AiResult"
+        '401':
+          "$ref": "#/components/responses/E401"
+        '404':
+          "$ref": "#/components/responses/E404"
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+components:
+  securitySchemes:
+    sessionCookie:
+      type: apiKey
+      in: cookie
+      name: session
+  schemas:
+    users:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        nickname:
+          type: string
+        license_type:
+          type: string
+          enum:
+          - CLASS1_ORDINARY
+          - CLASS2_ORDINARY
+        created_at:
+          type: string
+          format: date-time
+      description: '설계 초안: 대응 DB 테이블의 공개 필드. 상세 required/읽기·쓰기 구분은 명세 확정 게이트.'
+    auth_sessions:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        expires_at:
+          type: string
+          format: date-time
+        revoked_at:
+          type: string
+          format: date-time
+          nullable: true
+      description: '설계 초안: 대응 DB 테이블의 공개 필드. 상세 required/읽기·쓰기 구분은 명세 확정 게이트.'
+    official_sources:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        publisher:
+          type: string
+        url:
+          type: string
+        version:
+          type: string
+        effective_from:
+          type: string
+          format: date
+          nullable: true
+        effective_to:
+          type: string
+          format: date
+          nullable: true
+        retrieved_at:
+          type: string
+          format: date-time
+        sha256:
+          type: string
+          nullable: true
+        reuse_terms:
+          type: string
+        review_status:
+          type: string
+          enum:
+          - PENDING
+          - APPROVED
+          - REJECTED
+      description: '설계 초안: 대응 DB 테이블의 공개 필드. 상세 required/읽기·쓰기 구분은 명세 확정 게이트.'
+    source_chunks:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        source_id:
+          type: string
+          format: uuid
+        locator:
+          type: string
+        content:
+          type: string
+      description: '설계 초안: 대응 DB 테이블의 공개 필드. 상세 required/읽기·쓰기 구분은 명세 확정 게이트.'
+    guide_steps:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        source_id:
+          type: string
+          format: uuid
+        license_type:
+          type: string
+          enum:
+          - CLASS1_ORDINARY
+          - CLASS2_ORDINARY
+        step_order:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+      description: '설계 초안: 대응 DB 테이블의 공개 필드. 상세 required/읽기·쓰기 구분은 명세 확정 게이트.'
+    categories:
+      type: object
+      properties:
+        id:
+          type: string
+        name_ko:
+          type: string
+      description: '설계 초안: 대응 DB 테이블의 공개 필드. 상세 required/읽기·쓰기 구분은 명세 확정 게이트.'
+    questions:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        source_id:
+          type: string
+          format: uuid
+        category_id:
+          type: string
+        source_number:
+          type: string
+        kind:
+          type: string
+          enum:
+          - OFFICIAL
+          - PRACTICE
+          - AI_GENERATED_PRACTICE
+        license_scope:
+          type: string
+        prompt:
+          type: string
+        media_url:
+          type: string
+          nullable: true
+        points:
+          type: integer
+        required_selections:
+          type: integer
+        official_explanation:
+          type: string
+          nullable: true
+        review_status:
+          type: string
+          enum:
+          - PENDING
+          - APPROVED
+          - REJECTED
+      description: '설계 초안: 대응 DB 테이블의 공개 필드. 상세 required/읽기·쓰기 구분은 명세 확정 게이트.'
+    question_options:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        question_id:
+          type: string
+          format: uuid
+        position:
+          type: integer
+        content:
+          type: string
+      description: '설계 초안: 대응 DB 테이블의 공개 필드. 상세 required/읽기·쓰기 구분은 명세 확정 게이트.'
+    written_attempts:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        license_type:
+          type: string
+          enum:
+          - CLASS1_ORDINARY
+          - CLASS2_ORDINARY
+        mode:
+          type: string
+        status:
+          type: string
+          enum:
+          - IN_PROGRESS
+          - SUBMITTED
+          - ABORTED
+        started_at:
+          type: string
+          format: date-time
+        submitted_at:
+          type: string
+          format: date-time
+          nullable: true
+        score:
+          type: integer
+          nullable: true
+        max_score:
+          type: integer
+          nullable: true
+        outcome:
+          type: string
+          nullable: true
+      description: '설계 초안: 대응 DB 테이블의 공개 필드. 상세 required/읽기·쓰기 구분은 명세 확정 게이트.'
+    attempt_questions:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        attempt_id:
+          type: string
+          format: uuid
+        question_id:
+          type: string
+          format: uuid
+        position:
+          type: integer
+      description: '설계 초안: 대응 DB 테이블의 공개 필드. 상세 required/읽기·쓰기 구분은 명세 확정 게이트.'
+    written_answers:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        attempt_question_id:
+          type: string
+          format: uuid
+        is_correct:
+          type: boolean
+          nullable: true
+        earned_points:
+          type: integer
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+      description: '설계 초안: 대응 DB 테이블의 공개 필드. 상세 required/읽기·쓰기 구분은 명세 확정 게이트.'
+    answer_selections:
+      type: object
+      properties:
+        answer_id:
+          type: string
+          format: uuid
+        option_id:
+          type: string
+          format: uuid
+      description: '설계 초안: 대응 DB 테이블의 공개 필드. 상세 required/읽기·쓰기 구분은 명세 확정 게이트.'
+    official_scoring_rules:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        source_id:
+          type: string
+          format: uuid
+        category_id:
+          type: string
+        official_locator:
+          type: string
+        internal_code:
+          type: string
+        name_ko:
+          type: string
+        description:
+          type: string
+        deduction_points:
+          type: integer
+          nullable: true
+        is_disqualification:
+          type: boolean
+        support:
+          type: string
+          enum:
+          - A
+          - B
+          - C
+        limitations:
+          type: string
+        effective_from:
+          type: string
+          format: date
+        effective_to:
+          type: string
+          format: date
+          nullable: true
+        detector_version:
+          type: string
+          nullable: true
+        enabled:
+          type: boolean
+      description: '설계 초안: 대응 DB 테이블의 공개 필드. 상세 required/읽기·쓰기 구분은 명세 확정 게이트.'
+    scenarios:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum:
+          - FUNCTION
+          - ROAD
+        title:
+          type: string
+        version:
+          type: string
+        definition:
+          type: object
+      description: '설계 초안: 대응 DB 테이블의 공개 필드. 상세 required/읽기·쓰기 구분은 명세 확정 게이트.'
+    scenario_rules:
+      type: object
+      properties:
+        scenario_id:
+          type: string
+          format: uuid
+        rule_id:
+          type: string
+          format: uuid
+      description: '설계 초안: 대응 DB 테이블의 공개 필드. 상세 required/읽기·쓰기 구분은 명세 확정 게이트.'
+    training_sessions:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        scenario_id:
+          type: string
+          format: uuid
+        input_mode:
+          type: string
+        calibration_snapshot:
+          type: object
+          nullable: true
+        status:
+          type: string
+          enum:
+          - RUNNING
+          - PAUSED
+          - COMPLETED
+          - DISQUALIFIED
+          - ABORTED
+        verification_status:
+          type: string
+        started_at:
+          type: string
+          format: date-time
+        ended_at:
+          type: string
+          format: date-time
+          nullable: true
+        score:
+          type: integer
+          nullable: true
+        outcome:
+          type: string
+          nullable: true
+        disqualification_rule_id:
+          type: string
+          format: uuid
+          nullable: true
+      description: '설계 초안: 대응 DB 테이블의 공개 필드. 상세 required/읽기·쓰기 구분은 명세 확정 게이트.'
+    driving_events:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        session_id:
+          type: string
+          format: uuid
+        rule_id:
+          type: string
+          format: uuid
+          nullable: true
+        category_id:
+          type: string
+        event_key:
+          type: string
+        at_ms:
+          type: integer
+        evidence:
+          type: object
+        judgement:
+          type: string
+        deducted_points:
+          type: integer
+      description: '설계 초안: 대응 DB 테이블의 공개 필드. 상세 required/읽기·쓰기 구분은 명세 확정 게이트.'
+    ai_jobs:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        kind:
+          type: string
+          enum:
+          - EXPLANATION
+          - REPORT
+          - QA
+        answer_id:
+          type: string
+          format: uuid
+          nullable: true
+        prompt:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum:
+          - QUEUED
+          - RUNNING
+          - SUCCEEDED
+          - INSUFFICIENT_DATA
+          - INSUFFICIENT_EVIDENCE
+          - FAILED
+        evidence_snapshot:
+          type: object
+        result:
+          type: object
+          nullable: true
+        model_version:
+          type: string
+          nullable: true
+        prompt_version:
+          type: string
+        error_code:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+      description: '설계 초안: 대응 DB 테이블의 공개 필드. 상세 required/읽기·쓰기 구분은 명세 확정 게이트.'
+    ai_citations:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        job_id:
+          type: string
+          format: uuid
+        chunk_id:
+          type: string
+          format: uuid
+        claim_key:
+          type: string
+      description: '설계 초안: 대응 DB 테이블의 공개 필드. 상세 required/읽기·쓰기 구분은 명세 확정 게이트.'
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        request_id:
+          type: string
+          format: uuid
+      required:
+      - code
+      - message
+      - request_id
+    Signup:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          writeOnly: true
+        nickname:
+          type: string
+        license_type:
+          type: string
+          enum:
+          - CLASS1_ORDINARY
+          - CLASS2_ORDINARY
+      required:
+      - email
+      - password
+      - nickname
+      - license_type
+    Login:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          writeOnly: true
+      required:
+      - email
+      - password
+    CategoryStats:
+      type: object
+      properties:
+        category_id:
+          type: string
+        correct_count:
+          type: integer
+        answer_count:
+          type: integer
+        event_count:
+          type: integer
+      required:
+      - category_id
+      - correct_count
+      - answer_count
+      - event_count
+    Dashboard:
+      type: object
+      properties:
+        user:
+          "$ref": "#/components/schemas/users"
+        written_count:
+          type: integer
+        recent_attempts:
+          type: array
+          items:
+            "$ref": "#/components/schemas/written_attempts"
+        recent_sessions:
+          type: array
+          items:
+            "$ref": "#/components/schemas/training_sessions"
+        recent_reports:
+          type: array
+          items:
+            "$ref": "#/components/schemas/ai_jobs"
+      required:
+      - user
+      - written_count
+      - recent_attempts
+      - recent_sessions
+      - recent_reports
+    Guide:
+      type: object
+      properties:
+        steps:
+          type: array
+          items:
+            "$ref": "#/components/schemas/guide_steps"
+        sources:
+          type: array
+          items:
+            "$ref": "#/components/schemas/official_sources"
+      required:
+      - steps
+      - sources
+    WrittenCatalog:
+      type: object
+      properties:
+        categories:
+          type: array
+          items:
+            "$ref": "#/components/schemas/categories"
+        sources:
+          type: array
+          items:
+            "$ref": "#/components/schemas/official_sources"
+        mock_exam_available:
+          type: boolean
+      required:
+      - categories
+      - sources
+      - mock_exam_available
+    AttemptCreate:
+      type: object
+      properties:
+        license_type:
+          type: string
+          enum:
+          - CLASS1_ORDINARY
+          - CLASS2_ORDINARY
+        mode:
+          type: string
+          enum:
+          - PRACTICE
+          - MOCK_EXAM
+        category_id:
+          type: string
+      required:
+      - license_type
+      - mode
+    QuestionPublic:
+      type: object
+      properties:
+        question:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            source_id:
+              type: string
+              format: uuid
+            category_id:
+              type: string
+            source_number:
+              type: string
+            kind:
+              type: string
+              enum:
+              - OFFICIAL
+              - PRACTICE
+              - AI_GENERATED_PRACTICE
+            license_scope:
+              type: string
+            prompt:
+              type: string
+            media_url:
+              type: string
+              nullable: true
+            points:
+              type: integer
+            required_selections:
+              type: integer
+        options:
+          type: array
+          items:
+            "$ref": "#/components/schemas/question_options"
+        position:
+          type: integer
+      required:
+      - question
+      - options
+      - position
+    AttemptDetail:
+      type: object
+      properties:
+        attempt:
+          "$ref": "#/components/schemas/written_attempts"
+        questions:
+          type: array
+          items:
+            "$ref": "#/components/schemas/QuestionPublic"
+        saved_answers:
+          type: array
+          items:
+            type: object
+            properties:
+              question_id:
+                type: string
+                format: uuid
+              option_ids:
+                type: array
+                items:
+                  type: string
+                  format: uuid
+            required:
+            - question_id
+            - option_ids
+      required:
+      - attempt
+      - questions
+      - saved_answers
+    AnswerWrite:
+      type: object
+      properties:
+        option_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+          uniqueItems: true
+      required:
+      - option_ids
+    AnswerReview:
+      type: object
+      properties:
+        answer:
+          "$ref": "#/components/schemas/written_answers"
+        question:
+          "$ref": "#/components/schemas/questions"
+        options:
+          type: array
+          items:
+            "$ref": "#/components/schemas/question_options"
+        selected_option_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        correct_option_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        source:
+          "$ref": "#/components/schemas/official_sources"
+      required:
+      - answer
+      - question
+      - options
+      - selected_option_ids
+      - correct_option_ids
+      - source
+    WrittenResult:
+      type: object
+      properties:
+        attempt:
+          "$ref": "#/components/schemas/written_attempts"
+        answers:
+          type: array
+          items:
+            "$ref": "#/components/schemas/AnswerReview"
+        category_stats:
+          type: array
+          items:
+            "$ref": "#/components/schemas/CategoryStats"
+      required:
+      - attempt
+      - answers
+      - category_stats
+    Rules:
+      type: object
+      properties:
+        scenario:
+          "$ref": "#/components/schemas/scenarios"
+        rules:
+          type: array
+          items:
+            "$ref": "#/components/schemas/official_scoring_rules"
+        sources:
+          type: array
+          items:
+            "$ref": "#/components/schemas/official_sources"
+      required:
+      - scenario
+      - rules
+      - sources
+    Calibration:
+      type: object
+      description: 센서 정렬 결과와 조향 보정값. SENSOR 모드에서만 보내며 주행 기록에 그대로 저장된다.
+      properties:
+        center_deg:
+          type: number
+          minimum: -90
+          maximum: 90
+          description: 중앙 3초 고정으로 측정한 기준 각도
+        invert:
+          type: boolean
+          description: 좌우 반전
+        enter_deg:
+          type: number
+          minimum: 5
+          maximum: 30
+          description: 이 각도 이상 기울면 LEFT/RIGHT
+        exit_deg:
+          type: number
+          minimum: 2
+          maximum: 29
+          description: 이 각도 안으로 돌아오면 CENTER (enter_deg 보다 작아야 함)
+        smoothing_ms:
+          type: integer
+          minimum: 0
+          maximum: 1000
+          default: 0
+          description: 지수 평활 시간 상수
+        dwell_ms:
+          type: integer
+          minimum: 0
+          maximum: 1000
+          default: 0
+          description: 새 조향 방향이 유지돼야 하는 시간
+        stable_spread_deg:
+          type: number
+          minimum: 0
+          maximum: 10
+        left_confirmed:
+          type: boolean
+        right_confirmed:
+          type: boolean
+        sample_hz:
+          type: number
+          nullable: true
+        firmware_format:
+          type: string
+          enum:
+          - WME
+          - ROLL_PITCH
+          - ROLL
+        steering_axis:
+          type: string
+          enum:
+          - ROLL
+          - PITCH
+          default: ROLL
+      required:
+      - center_deg
+      - invert
+      - enter_deg
+      - exit_deg
+      - stable_spread_deg
+      - left_confirmed
+      - right_confirmed
+      - firmware_format
+    TrainingCreate:
+      type: object
+      properties:
+        scenario_id:
+          type: string
+          format: uuid
+        input_mode:
+          type: string
+          enum:
+          - SENSOR
+          - KEYBOARD
+        calibration:
+          "$ref": "#/components/schemas/Calibration"
+      required:
+      - scenario_id
+      - input_mode
+    InputFrame:
+      type: object
+      properties:
+        seq:
+          type: integer
+          minimum: 0
+        t_ms:
+          type: integer
+          minimum: 0
+        steering:
+          type: integer
+          enum:
+          - -1
+          - 0
+          - 1
+        drive:
+          type: string
+          enum:
+          - FORWARD
+          - STOP
+          - REVERSE
+      required:
+      - seq
+      - t_ms
+      - steering
+      - drive
+    TrainingComplete:
+      type: object
+      properties:
+        engine_version:
+          type: string
+        frames:
+          type: array
+          items:
+            "$ref": "#/components/schemas/InputFrame"
+      required:
+      - engine_version
+      - frames
+    TrainingResult:
+      type: object
+      properties:
+        session:
+          "$ref": "#/components/schemas/training_sessions"
+        events:
+          type: array
+          items:
+            "$ref": "#/components/schemas/driving_events"
+        rules:
+          type: array
+          items:
+            "$ref": "#/components/schemas/official_scoring_rules"
+        sources:
+          type: array
+          items:
+            "$ref": "#/components/schemas/official_sources"
+      required:
+      - session
+      - events
+      - rules
+      - sources
+    AiCreate:
+      type: object
+      properties:
+        kind:
+          type: string
+          enum:
+          - EXPLANATION
+          - REPORT
+          - QA
+        answer_id:
+          type: string
+          format: uuid
+        prompt:
+          type: string
+          maxLength: 2000
+      required:
+      - kind
+    AiResult:
+      type: object
+      properties:
+        job:
+          "$ref": "#/components/schemas/ai_jobs"
+        citations:
+          type: array
+          items:
+            "$ref": "#/components/schemas/ai_citations"
+        chunks:
+          type: array
+          items:
+            "$ref": "#/components/schemas/source_chunks"
+        sources:
+          type: array
+          items:
+            "$ref": "#/components/schemas/official_sources"
+      required:
+      - job
+      - citations
+      - chunks
+      - sources
+  responses:
+    E400:
+      description: 요청 값 오류
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/Error"
+          example:
+            code: INVALID_INPUT
+            message: 요청 값 오류
+            request_id: 11111111-1111-4111-8111-111111111111
+    E401:
+      description: 로그인 필요
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/Error"
+          example:
+            code: UNAUTHENTICATED
+            message: 로그인 필요
+            request_id: 11111111-1111-4111-8111-111111111111
+    E403:
+      description: 요청 출처·CSRF 검증 실패
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/Error"
+          example:
+            code: FORBIDDEN
+            message: 요청 출처·CSRF 검증 실패
+            request_id: 11111111-1111-4111-8111-111111111111
+    E404:
+      description: 리소스 없음 또는 본인 자료 아님
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/Error"
+          example:
+            code: NOT_FOUND
+            message: 리소스 없음 또는 본인 자료 아님
+            request_id: 11111111-1111-4111-8111-111111111111
+    E409:
+      description: 현재 상태와 충돌
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/Error"
+          example:
+            code: STATE_CONFLICT
+            message: 현재 상태와 충돌
+            request_id: 11111111-1111-4111-8111-111111111111
+    E413:
+      description: 기록 크기 초과
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/Error"
+          example:
+            code: PAYLOAD_TOO_LARGE
+            message: 기록 크기 초과
+            request_id: 11111111-1111-4111-8111-111111111111
+    E429:
+      description: 요청 제한
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/Error"
+          example:
+            code: RATE_LIMITED
+            message: 요청 제한
+            request_id: 11111111-1111-4111-8111-111111111111
+    E503:
+      description: 자료 또는 AI 서비스 일시 불가
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/Error"
+          example:
+            code: UNAVAILABLE
+            message: 자료 또는 AI 서비스 일시 불가
+            request_id: 11111111-1111-4111-8111-111111111111
