@@ -77,7 +77,7 @@ export default function DriveResult() {
         <div className="card">
           <div className="stat">
             <span className="label">{road ? '참고 감점 합계' : '기록된 사건'}</span>
-            <span className="value num">{road ? `-${data.reference_deduction ?? 0}` : issues.length}<small>{road ? '점' : '건'}</small></span>
+            <span className="value num">{road ? (data.reference_deduction ? `-${data.reference_deduction}` : 0) : issues.length}<small>{road ? '점' : '건'}</small></span>
             <span className="tiny muted">{road ? '별표26 해당 항목 감점값 합 · 공식 채점 아님' : '기본조작 연습은 공식 항목과 연결하지 않음'}</span>
           </div>
         </div>

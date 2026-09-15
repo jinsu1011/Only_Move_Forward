@@ -1,0 +1,1634 @@
+openapi: 3.0.3
+info:
+  title: 전진만할게요 API
+  version: 1.0.0
+  description: |
+    1·2종 보통 운전면허 준비자를 위한 학습 보조 웹 서비스의 REST API 명세입니다.
+    필기 연습·오답 해설, 기본조작·도로주행 시뮬레이션 연습, AI 통합 학습 리포트를 제공합니다.
+    공식 운전면허 시험·실차교육을 대체하지 않으며, 주행 판정은 연습용입니다.
+
+    ## 공통 규칙
+    - **인증**: 로그인·가입에 성공하면 서버가 HttpOnly 세션 쿠키 `lf_session`(7일)을 발급합니다.
+      인증이 필요한 API는 이 쿠키로 사용자를 확인하고, **본인 소유 데이터만** 조회·변경합니다
+      (다른 사용자의 ID를 넣으면 존재 여부를 숨기고 404를 반환합니다).
+    - **CSRF**: GET 이외의 요청은 `GET /auth/csrf`로 받은 `lf_csrf` 쿠키 값을 `X-CSRF-Token` 헤더에 함께 보냅니다.
+      값이 다르거나 허용되지 않은 Origin이면 403입니다.
+    - **재시도 중복 방지**: 생성 요청(필기 시도·주행 세션·AI 작업)은 `Idempotency-Key` 헤더를 받습니다.
+      같은 키·같은 본문이면 처음 응답을 그대로 돌려주고(`Idempotent-Replayed: true`), 같은 키에 다른 본문이면 409입니다.
+    - **오류 형식**: 모든 오류는 `Error` 스키마(`error.code`, `error.message`, 선택 `error.details`)로 응답합니다.
+      입력 검증 실패는 400 `VALIDATION_ERROR`이며 `details`에 필드별 사유가 담깁니다.
+    - **정답·채점**: 필기 정답은 검수된 문항 데이터가, 주행 사건은 서버가 입력 기록을 재생해 확정합니다. AI는 설명만 담당합니다.
+    - **센서**: MPU-6050 센서는 브라우저 Web Serial로 직접 연결하므로 센서 전용 서버 API는 없습니다.
+      센서 보정값은 주행 세션 생성 시 `calibration`으로 저장됩니다.
+    - 시각은 모두 UTC ISO 8601(`date-time`) 문자열입니다.
+servers:
+  - url: http://localhost:8010/api/v1
+    description: 로컬 개발 서버
+tags:
+  - name: auth
+    description: 가입·로그인·세션
+  - name: home
+    description: 면허 안내·대시보드
+  - name: written
+    description: 필기 연습·결과·오답 해설
+  - name: driving
+    description: 주행 코스·채점 기준·주행 세션
+  - name: ai
+    description: AI 오답 해설·통합 학습 리포트
+
+paths:
+  /health:
+    get:
+      tags: [home]
+      operationId: getHealth
+      summary: 서버 상태 확인
+      description: 로그인 없이 호출합니다. 시뮬레이션 엔진 버전과 AI 연결 여부를 알려 줍니다.
+      responses:
+        '200':
+          description: 정상
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Health' }
+
+  /auth/csrf:
+    get:
+      tags: [auth]
+      operationId: issueCsrfToken
+      summary: CSRF 토큰 발급
+      description: '`lf_csrf` 쿠키를 새로 발급하고 같은 값을 본문으로도 돌려줍니다. 화면은 변경 요청 전에 쿠키가 없으면 호출합니다.'
+      responses:
+        '200':
+          description: 발급 성공 (Set-Cookie lf_csrf)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CsrfToken' }
+
+  /auth/signup:
+    post:
+      tags: [auth]
+      operationId: signup
+      summary: 회원가입
+      description: 가입과 동시에 로그인 세션을 발급합니다. 비밀번호는 scrypt 해시로만 저장합니다. [화면] 회원가입
+      parameters:
+        - $ref: '#/components/parameters/CsrfHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SignupRequest' }
+      responses:
+        '201':
+          description: 가입 성공 (Set-Cookie lf_session, lf_csrf)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409':
+          description: 이미 가입된 이메일 (`EMAIL_TAKEN`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error: { code: EMAIL_TAKEN, message: 이미 가입된 이메일입니다. }
+
+  /auth/login:
+    post:
+      tags: [auth]
+      operationId: login
+      summary: 로그인
+      description: 이메일+접속 IP 기준 1분에 5회 실패하면 잠시 차단합니다. [화면] 로그인
+      parameters:
+        - $ref: '#/components/parameters/CsrfHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginRequest' }
+      responses:
+        '200':
+          description: 로그인 성공 (Set-Cookie lf_session, lf_csrf)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401':
+          description: 이메일 또는 비밀번호 불일치 (`INVALID_CREDENTIALS`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error: { code: INVALID_CREDENTIALS, message: 이메일 또는 비밀번호가 맞지 않습니다. }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '429':
+          description: 로그인 시도 과다 (`TOO_MANY_ATTEMPTS`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error: { code: TOO_MANY_ATTEMPTS, message: 로그인 시도가 많습니다. 1분 뒤 다시 시도해 주세요. }
+
+  /auth/logout:
+    post:
+      tags: [auth]
+      operationId: logout
+      summary: 로그아웃
+      description: 현재 세션을 폐기(`auth_sessions.revoked_at`)하고 세션 쿠키를 지웁니다. [화면] 상단 바
+      parameters:
+        - $ref: '#/components/parameters/CsrfHeader'
+      responses:
+        '204':
+          description: 로그아웃 완료
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /me:
+    get:
+      tags: [auth]
+      operationId: getMe
+      summary: 로그인 사용자 조회
+      description: 앱 시작 시 세션이 유효한지 확인합니다. [화면] 전체(상단 바)
+      responses:
+        '200':
+          description: 로그인 사용자
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /guide:
+    get:
+      tags: [home]
+      operationId: getGuide
+      summary: 면허 취득 절차·공식 출처 안내
+      description: 로그인 없이 호출합니다. 공식 자료의 버전·조회일과 도로주행 채점 항목 지원 범위(A/B/C) 집계를 함께 줍니다. [화면] 서비스 소개
+      responses:
+        '200':
+          description: 안내 정보
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Guide' }
+
+  /dashboard:
+    get:
+      tags: [home]
+      operationId: getDashboard
+      summary: 대시보드 요약
+      description: 필기 제출 기록·주행 기록·최근 AI 리포트 상태를 한 번에 조회합니다. [화면] 대시보드
+      responses:
+        '200':
+          description: 대시보드 데이터
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Dashboard' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /written/catalog:
+    get:
+      tags: [written]
+      operationId: getWrittenCatalog
+      summary: 필기 주제·문항 수 조회
+      description: 로그인 사용자의 면허 종별에 맞는 검수 완료 문항만 셉니다. 공식 문제은행 검수 전이라 모의고사 모드는 비활성으로 내려갑니다. [화면] 필기 연습 설정
+      responses:
+        '200':
+          description: 주제 목록
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WrittenCatalog' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /written/attempts:
+    post:
+      tags: [written]
+      operationId: createWrittenAttempt
+      summary: 필기 연습 시작
+      description: |
+        선택한 주제에서 검수 완료 문항을 무작위로 뽑아 시도를 만듭니다. 응답에는 **정답(`is_correct`)이 포함되지 않습니다.**
+        `category_ids`가 비어 있으면 전체 주제에서 뽑습니다. [화면] 필기 연습 설정 → 문제 풀이
+      parameters:
+        - $ref: '#/components/parameters/CsrfHeader'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/WrittenAttemptCreateRequest' }
+      responses:
+        '201':
+          description: 시도 생성 (재시도 키가 같으면 처음 응답 재사용)
+          headers:
+            Idempotent-Replayed:
+              $ref: '#/components/headers/IdempotentReplayed'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WrittenAttempt' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409':
+          description: 검수 문항 없음(`NO_REVIEWED_QUESTIONS`) 또는 재시도 키 충돌(`IDEMPOTENCY_CONFLICT`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+    get:
+      tags: [written]
+      operationId: listWrittenAttempts
+      summary: 내 필기 시도 목록
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: 최근 시작 순
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/WrittenAttemptListItem' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /written/attempts/{attemptId}:
+    get:
+      tags: [written]
+      operationId: getWrittenAttempt
+      summary: 필기 시도 조회(풀이 중)
+      description: 새로고침 후 이어 풀기에 사용합니다. 저장한 선택(`selected_option_ids`)은 보이지만 정답은 보이지 않습니다. [화면] 문제 풀이
+      parameters:
+        - $ref: '#/components/parameters/AttemptId'
+      responses:
+        '200':
+          description: 시도 상세
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WrittenAttempt' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /written/attempts/{attemptId}/answers/{questionId}:
+    put:
+      tags: [written]
+      operationId: saveWrittenAnswer
+      summary: 답안 저장(덮어쓰기)
+      description: 보기를 누를 때마다 호출합니다. 같은 문항에 다시 보내면 선택을 교체합니다. 빈 배열이면 선택 해제입니다. [화면] 문제 풀이
+      parameters:
+        - $ref: '#/components/parameters/AttemptId'
+        - name: questionId
+          in: path
+          required: true
+          description: 시도에 포함된 문항 ID
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/CsrfHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AnswerSaveRequest' }
+      responses:
+        '200':
+          description: 저장 완료
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AnswerSaved' }
+        '400':
+          description: 형식 오류, 선택 개수 초과(`TOO_MANY_SELECTIONS`), 문항에 없는 보기(`INVALID_OPTION`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404':
+          description: 시도 없음(`ATTEMPT_NOT_FOUND`) 또는 시도에 없는 문항(`QUESTION_NOT_IN_ATTEMPT`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '409':
+          description: 이미 제출한 시도 (`ATTEMPT_ALREADY_SUBMITTED`) — 화면은 결과로 이동
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /written/attempts/{attemptId}/submit:
+    post:
+      tags: [written]
+      operationId: submitWrittenAttempt
+      summary: 최종 제출·채점
+      description: 서버가 검수 정답과 비교해 채점합니다. 이미 제출된 시도에 다시 호출하면 같은 결과를 돌려줍니다(재시도 안전). [화면] 문제 풀이 → 결과
+      parameters:
+        - $ref: '#/components/parameters/AttemptId'
+        - $ref: '#/components/parameters/CsrfHeader'
+      responses:
+        '200':
+          description: 채점 결과
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WrittenResult' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: 제출할 수 없는 상태 (`ATTEMPT_NOT_ACTIVE`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /written/attempts/{attemptId}/result:
+    get:
+      tags: [written]
+      operationId: getWrittenResult
+      summary: 필기 결과 조회
+      description: 연습 모드는 합격 판정을 하지 않습니다(`outcome = PRACTICE_NO_PASS_JUDGEMENT`). [화면] 필기 결과
+      parameters:
+        - $ref: '#/components/parameters/AttemptId'
+      responses:
+        '200':
+          description: 결과
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WrittenResult' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: 제출 전 (`ATTEMPT_NOT_SUBMITTED`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /written/answers/{answerId}:
+    get:
+      tags: [written]
+      operationId: getAnswerReview
+      summary: 문항별 정답·해설·근거 조회
+      description: 제출한 시도의 답안만 정답·검수 해설·조문 근거를 공개합니다. 가장 최근 AI 해설 작업도 함께 줍니다. [화면] 오답 해설
+      parameters:
+        - $ref: '#/components/parameters/AnswerId'
+      responses:
+        '200':
+          description: 해설 화면 데이터
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AnswerReview' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: 제출 전이라 정답 비공개 (`ATTEMPT_NOT_SUBMITTED`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /scenarios:
+    get:
+      tags: [driving]
+      operationId: listScenarios
+      summary: 주행 코스 목록
+      description: '[화면] 주행 홈(기본조작 연습장·도로주행 A코스 선택)'
+      parameters:
+        - name: kind
+          in: query
+          required: false
+          description: 코스 종류로 거르기
+          schema: { $ref: '#/components/schemas/ScenarioKind' }
+      responses:
+        '200':
+          description: 활성 코스 목록
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/ScenarioItem' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /scenarios/{scenarioId}:
+    get:
+      tags: [driving]
+      operationId: getScenario
+      summary: 코스 상세(지오메트리·연습 판정 항목)
+      description: 브라우저 시뮬레이션이 쓰는 코스 정의와, 이 코스에서 연습 판정하는 별표26 항목을 줍니다. [화면] 센서·키보드 준비, 주행
+      parameters:
+        - $ref: '#/components/parameters/ScenarioId'
+      responses:
+        '200':
+          description: 코스 상세
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ScenarioDetail' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /scoring-rules:
+    get:
+      tags: [driving]
+      operationId: listScoringRules
+      summary: 도로주행 채점 기준(별표26) 전체와 지원 범위
+      description: 감점·실격 항목별로 A(자동 채점)/B(연습 표시)/C(안내만) 지원 범위와 한계를 줍니다. 검증 전이라 `auto_scoring_enabled`는 모두 false입니다. [화면] 주행 홈(채점 기준 보기)
+      responses:
+        '200':
+          description: 채점 기준 목록
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/ScoringRule' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /training/sessions:
+    post:
+      tags: [driving]
+      operationId: createTrainingSession
+      summary: 주행 시작
+      description: |
+        센서 정렬(또는 키보드 확인)이 끝나고 시작을 누르면 호출합니다.
+        `input_mode = SENSOR`이면 `calibration`이 **필수**, `KEYBOARD`이면 **보내지 않습니다**(어기면 400 `CALIBRATION_MISMATCH`).
+        같은 사용자의 진행 중(RUNNING) 세션은 `ABORTED / SUPERSEDED`로 닫힙니다. [화면] 준비 → 주행
+      parameters:
+        - $ref: '#/components/parameters/CsrfHeader'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TrainingSessionCreateRequest' }
+            examples:
+              keyboard:
+                summary: 키보드 모드
+                value: { scenario_id: 6f1c1c36-3a51-4a39-9d7c-1f3c1d8f0a11, input_mode: KEYBOARD }
+              sensor:
+                summary: 센서 모드
+                value:
+                  scenario_id: 6f1c1c36-3a51-4a39-9d7c-1f3c1d8f0a11
+                  input_mode: SENSOR
+                  calibration:
+                    center_deg: 1.8
+                    invert: false
+                    enter_deg: 15
+                    exit_deg: 8
+                    smoothing_ms: 150
+                    dwell_ms: 120
+                    stable_spread_deg: 1.2
+                    left_confirmed: true
+                    right_confirmed: true
+                    sample_hz: 50
+                    firmware_format: WME
+                    steering_axis: ROLL
+      responses:
+        '201':
+          description: 세션 생성
+          headers:
+            Idempotent-Replayed:
+              $ref: '#/components/headers/IdempotentReplayed'
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TrainingSessionSummary' }
+        '400':
+          description: 형식 오류, `CALIBRATION_MISMATCH`, 복귀 각도 ≥ 진입 각도(`INVALID_HYSTERESIS`), 좌우 미확인 보정값
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { $ref: '#/components/responses/IdempotencyConflict' }
+    get:
+      tags: [driving]
+      operationId: listTrainingSessions
+      summary: 내 주행 기록 목록
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: 최근 시작 순
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/TrainingSessionListItem' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /training/sessions/{sessionId}:
+    get:
+      tags: [driving]
+      operationId: getTrainingSession
+      summary: 주행 결과 상세
+      description: 사건 목록·참고 감점·검증 상태와, 저장된 입력 기록(`replay`)을 줍니다. [화면] 주행 결과
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      responses:
+        '200':
+          description: 결과 상세
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TrainingSessionDetail' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /training/sessions/{sessionId}/complete:
+    post:
+      tags: [driving]
+      operationId: completeTrainingSession
+      summary: 주행 종료·서버 재생 검증
+      description: |
+        브라우저가 30Hz 입력 변화 기록과 자신이 감지한 사건을 보냅니다. 서버는 같은 엔진(sim-1.0.0)으로 입력을 재생해 사건을 **확정**하고,
+        브라우저 사건과 비교해 `verification_status`(VERIFIED/MISMATCH)를 기록합니다.
+        실격 해당 사건이 있어도 주행을 끊지 않고 누적하며, 완주 + 실격 사건 1건 이상이면 `DISQUALIFIED`입니다.
+        같은 입력으로 다시 보내면 저장된 결과를 돌려줍니다(재시도 안전). [화면] 주행 → 결과
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+        - $ref: '#/components/parameters/CsrfHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TrainingCompleteRequest' }
+      responses:
+        '200':
+          description: 확정된 결과
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TrainingResult' }
+        '400':
+          description: 형식 오류 또는 입력 기록 오류 (`INVALID_INPUT_LOG`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: 이미 다른 입력으로 종료된 세션 (`SESSION_ALREADY_ENDED`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '413':
+          description: 코스 제한 시간을 넘는 입력 기록 (`INPUT_LOG_TOO_LONG`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /training/sessions/{sessionId}/abort:
+    post:
+      tags: [driving]
+      operationId: abortTrainingSession
+      summary: 주행 중단
+      description: R(다시 정렬)·센서 단절·나가기로 저장 없이 끝낼 때 호출합니다. 이미 중단된 세션에 다시 호출해도 같은 결과입니다. [화면] 주행
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+        - $ref: '#/components/parameters/CsrfHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TrainingAbortRequest' }
+      responses:
+        '200':
+          description: 중단 처리
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TrainingSessionSummary' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: 이미 완료된 세션 (`SESSION_ALREADY_ENDED`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /ai/jobs:
+    post:
+      tags: [ai]
+      operationId: createAiJob
+      summary: AI 해설·리포트 요청
+      description: |
+        비동기 작업을 만들고 202를 돌려줍니다. 화면은 `GET /ai/jobs/{jobId}`로 상태를 확인합니다.
+        - `EXPLANATION`: `answer_id` **필수**. 제출한 본인 답안만 가능. 정답은 문항 데이터로 고정하고 AI는 설명만 생성하며, 인용 근거 ID를 서버가 검증합니다.
+        - `REPORT`: `answer_id` **보내지 않음**. 서버가 저장된 필기 답안·주행 사건으로 통계를 계산하고, AI 서술의 인용 ID·수치가 통계에 있는지 검증합니다.
+          AI가 실패하면 규칙 기반 요약(`FALLBACK`)으로, 기록이 부족하면 `INSUFFICIENT_DATA`로 끝납니다.
+        같은 대상의 작업이 진행 중이면 새로 만들지 않고 그 작업을 돌려줍니다. [화면] 오답 해설, AI 리포트
+      parameters:
+        - $ref: '#/components/parameters/CsrfHeader'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/AiJobCreateRequest' }
+            examples:
+              explanation:
+                summary: 오답 해설
+                value: { kind: EXPLANATION, answer_id: 0b6f3e7e-2f0a-4a3e-8a8e-5c3a2b9d1e40 }
+              report:
+                summary: 통합 리포트
+                value: { kind: REPORT }
+      responses:
+        '202':
+          description: 작업 접수(또는 진행 중인 기존 작업)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AiJob' }
+        '400':
+          description: 형식 오류, `ANSWER_ID_REQUIRED`, `UNEXPECTED_FIELD`
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: 제출 전 답안(`ATTEMPT_NOT_SUBMITTED`) 또는 재시도 키 충돌(`IDEMPOTENCY_CONFLICT`)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+    get:
+      tags: [ai]
+      operationId: listAiJobs
+      summary: 내 AI 작업 목록
+      description: '[화면] AI 리포트(지난 리포트)'
+      parameters:
+        - name: kind
+          in: query
+          required: false
+          schema: { $ref: '#/components/schemas/AiJobKind' }
+        - name: limit
+          in: query
+          required: false
+          schema: { type: integer, minimum: 1, maximum: 50, default: 10 }
+      responses:
+        '200':
+          description: 최근 생성 순
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/AiJob' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /ai/jobs/{jobId}:
+    get:
+      tags: [ai]
+      operationId: getAiJob
+      summary: AI 작업 상태·결과 조회
+      description: QUEUED/RUNNING이면 화면이 잠시 뒤 다시 조회합니다. [화면] 오답 해설, AI 리포트
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: 작업
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AiJob' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+components:
+  parameters:
+    CsrfHeader:
+      name: X-CSRF-Token
+      in: header
+      required: true
+      description: '`lf_csrf` 쿠키와 같은 값 (double-submit)'
+      schema: { type: string }
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      description: 재시도 중복 방지 키 (영문·숫자·하이픈 8~64자, 보통 UUID)
+      schema: { type: string, pattern: '^[A-Za-z0-9-]{8,64}$' }
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema: { type: integer, minimum: 1, maximum: 50, default: 20 }
+    AttemptId:
+      name: attemptId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    AnswerId:
+      name: answerId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    ScenarioId:
+      name: scenarioId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    SessionId:
+      name: sessionId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+
+  headers:
+    IdempotentReplayed:
+      description: 같은 Idempotency-Key 요청의 저장된 응답을 재사용했으면 `true`
+      schema: { type: string, enum: ['true'] }
+
+  responses:
+    BadRequest:
+      description: 입력값 검증 실패
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example:
+            error:
+              code: VALIDATION_ERROR
+              message: 입력값을 확인해 주세요.
+              details: [{ field: password, reason: 영문과 숫자를 함께 포함해야 합니다 }]
+    Unauthorized:
+      description: 로그인 필요(`AUTH_REQUIRED`) 또는 세션 만료(`SESSION_EXPIRED`) — 화면은 로그인으로 이동
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example:
+            error: { code: AUTH_REQUIRED, message: 로그인이 필요합니다. }
+    Forbidden:
+      description: CSRF 토큰 불일치(`CSRF_FAILED`) 또는 허용되지 않은 Origin(`ORIGIN_REJECTED`)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example:
+            error: { code: CSRF_FAILED, message: 보안 토큰이 맞지 않습니다. 페이지를 새로고침해 주세요. }
+    NotFound:
+      description: 없거나 본인 소유가 아님 (`ATTEMPT_NOT_FOUND`, `ANSWER_NOT_FOUND`, `SCENARIO_NOT_FOUND`, `SESSION_NOT_FOUND`, `AI_JOB_NOT_FOUND`)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example:
+            error: { code: SESSION_NOT_FOUND, message: 주행 기록을 찾을 수 없습니다. }
+    IdempotencyConflict:
+      description: 같은 Idempotency-Key로 다른 본문 전송 (`IDEMPOTENCY_CONFLICT`)
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example:
+            error: { code: IDEMPOTENCY_CONFLICT, message: 같은 요청 키로 다른 내용이 전송되었습니다. }
+
+  schemas:
+    # ---------- 공통 ----------
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string, example: VALIDATION_ERROR }
+            message: { type: string, example: 입력값을 확인해 주세요. }
+            details:
+              type: array
+              items:
+                type: object
+                required: [field, reason]
+                properties:
+                  field: { type: string, example: email }
+                  reason: { type: string, example: 이메일 형식이 아닙니다 }
+    Health:
+      type: object
+      required: [status, sim_version, llm_configured, llm_model]
+      properties:
+        status: { type: string, enum: [ok] }
+        sim_version: { type: string, example: sim-1.0.0 }
+        llm_configured: { type: boolean }
+        llm_model: { type: string, nullable: true, description: AI 미연결이면 null }
+    CsrfToken:
+      type: object
+      required: [csrf_token]
+      properties:
+        csrf_token: { type: string }
+    LicenseType:
+      type: string
+      description: 1종 보통 / 2종 보통
+      enum: [CLASS1_ORDINARY, CLASS2_ORDINARY]
+    ReviewStatus:
+      type: string
+      enum: [PENDING, SELF_REVIEWED, APPROVED, REJECTED]
+    CategoryRef:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: string, example: SIGNAL }
+        name: { type: string, example: 신호·안전표지 }
+    SupportLevel:
+      type: string
+      description: A 자동 채점 / B 연습 표시 / C 안내만
+      enum: [A, B, C]
+    RuleKind:
+      type: string
+      description: 감점 / 실격
+      enum: [DEDUCTION, DISQUALIFICATION]
+
+    # ---------- 인증 ----------
+    SignupRequest:
+      type: object
+      required: [email, password, nickname, license_type]
+      properties:
+        email: { type: string, format: email, maxLength: 254, example: learner@example.com }
+        password: { type: string, format: password, minLength: 8, maxLength: 72, writeOnly: true, description: 영문과 숫자를 함께 포함, example: drive2026 }
+        nickname: { type: string, minLength: 2, maxLength: 20, example: 초보운전 }
+        license_type: { $ref: '#/components/schemas/LicenseType' }
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email, maxLength: 254, example: learner@example.com }
+        password: { type: string, format: password, minLength: 1, maxLength: 72, writeOnly: true, example: drive2026 }
+    User:
+      type: object
+      required: [id, email, nickname, license_type, created_at]
+      properties:
+        id: { type: string, format: uuid, readOnly: true }
+        email: { type: string, format: email }
+        nickname: { type: string }
+        license_type: { $ref: '#/components/schemas/LicenseType' }
+        created_at: { type: string, format: date-time, readOnly: true }
+
+    # ---------- 안내·대시보드 ----------
+    OfficialSource:
+      type: object
+      required: [id, title, publisher, url, version, effective_from, retrieved_at, review_status]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string, example: '도로교통법 시행규칙 [별표 26] 운전면허시험(도로주행시험) 채점기준' }
+        publisher: { type: string, example: 법제처 }
+        url: { type: string }
+        version: { type: string, example: 2026-02-24 개정 }
+        effective_from: { type: string, format: date, nullable: true, example: '2026-08-01' }
+        retrieved_at: { type: string, format: date, example: '2026-09-15' }
+        review_status: { $ref: '#/components/schemas/ReviewStatus' }
+    Guide:
+      type: object
+      required: [steps, sources, road_rule_support, notice]
+      properties:
+        steps:
+          type: array
+          items:
+            type: object
+            required: [order, title, content]
+            properties:
+              order: { type: integer, minimum: 1 }
+              title: { type: string, example: 학과시험 }
+              content: { type: string }
+        sources:
+          type: array
+          items: { $ref: '#/components/schemas/OfficialSource' }
+        road_rule_support:
+          type: array
+          description: 별표26 항목의 지원 범위×종류별 개수
+          items:
+            type: object
+            required: [support, kind, n]
+            properties:
+              support: { $ref: '#/components/schemas/SupportLevel' }
+              kind: { $ref: '#/components/schemas/RuleKind' }
+              n: { type: integer, minimum: 0 }
+        notice: { type: string }
+    Dashboard:
+      type: object
+      required: [user, written, driving, latest_report, llm_configured]
+      properties:
+        user: { $ref: '#/components/schemas/User' }
+        written:
+          type: object
+          required: [submitted_count, correct_total, answer_total, recent, in_progress]
+          properties:
+            submitted_count: { type: integer, minimum: 0 }
+            correct_total: { type: integer, minimum: 0 }
+            answer_total: { type: integer, minimum: 0 }
+            recent:
+              type: array
+              maxItems: 6
+              items:
+                type: object
+                required: [id, score, max_score, correct_count, question_count, submitted_at]
+                properties:
+                  id: { type: string, format: uuid }
+                  score: { type: integer, minimum: 0 }
+                  max_score: { type: integer, minimum: 1 }
+                  correct_count: { type: integer, minimum: 0 }
+                  question_count: { type: integer, minimum: 1 }
+                  submitted_at: { type: string, format: date-time }
+            in_progress:
+              type: object
+              nullable: true
+              description: 이어 풀 수 있는 시도 (없으면 null)
+              required: [id, question_count, started_at]
+              properties:
+                id: { type: string, format: uuid }
+                question_count: { type: integer }
+                started_at: { type: string, format: date-time }
+        driving:
+          type: object
+          required: [session_count, completed_count, disqualified_count, recent]
+          properties:
+            session_count: { type: integer, minimum: 0 }
+            completed_count: { type: integer, minimum: 0 }
+            disqualified_count: { type: integer, minimum: 0 }
+            recent:
+              type: array
+              maxItems: 6
+              items:
+                type: object
+                required: [id, status, ended_at, reference_deduction, input_mode, title, kind, event_count]
+                properties:
+                  id: { type: string, format: uuid }
+                  status: { $ref: '#/components/schemas/TrainingStatus' }
+                  ended_at: { type: string, format: date-time }
+                  reference_deduction: { type: integer, nullable: true }
+                  input_mode: { $ref: '#/components/schemas/InputMode' }
+                  title: { type: string }
+                  kind: { $ref: '#/components/schemas/ScenarioKind' }
+                  event_count: { type: integer, minimum: 0, description: 과제 통과·완주를 뺀 사건 수 }
+        latest_report:
+          type: object
+          nullable: true
+          required: [id, status, created_at]
+          properties:
+            id: { type: string, format: uuid }
+            status: { $ref: '#/components/schemas/AiJobStatus' }
+            created_at: { type: string, format: date-time }
+        llm_configured: { type: boolean }
+
+    # ---------- 필기 ----------
+    WrittenCatalog:
+      type: object
+      required: [license_type, categories, total_questions, modes, data_notice]
+      properties:
+        license_type: { $ref: '#/components/schemas/LicenseType' }
+        categories:
+          type: array
+          items:
+            type: object
+            required: [id, name, question_count]
+            properties:
+              id: { type: string, example: SIGNAL }
+              name: { type: string }
+              question_count: { type: integer, minimum: 0 }
+        total_questions: { type: integer, minimum: 0 }
+        modes:
+          type: array
+          items:
+            type: object
+            required: [mode, available, label]
+            properties:
+              mode: { type: string, enum: [PRACTICE, MOCK_EXAM] }
+              available: { type: boolean }
+              label: { type: string }
+              reason: { type: string, description: 비활성 사유 }
+        data_notice: { type: string }
+    WrittenAttemptCreateRequest:
+      type: object
+      required: [question_count]
+      properties:
+        mode: { type: string, enum: [PRACTICE], default: PRACTICE }
+        category_ids:
+          type: array
+          maxItems: 10
+          default: []
+          items: { type: string }
+          example: [SIGNAL, PEDESTRIAN]
+        question_count: { type: integer, minimum: 1, maximum: 40, example: 10, description: 검수 문항이 적으면 있는 만큼만 출제 }
+    WrittenAttemptStatus:
+      type: string
+      enum: [IN_PROGRESS, SUBMITTED, ABORTED]
+    QuestionOption:
+      type: object
+      required: [id, position, content]
+      properties:
+        id: { type: string, format: uuid }
+        position: { type: integer, minimum: 1, maximum: 5 }
+        content: { type: string }
+        is_correct: { type: boolean, description: 제출 후 해설 조회에서만 포함 }
+    AttemptQuestion:
+      type: object
+      required: [attempt_question_id, position, question_id, code, category, kind, review_status, prompt, media_url, points, required_selections, options, selected_option_ids]
+      properties:
+        attempt_question_id: { type: string, format: uuid }
+        position: { type: integer, minimum: 1 }
+        question_id: { type: string, format: uuid }
+        code: { type: string }
+        category: { $ref: '#/components/schemas/CategoryRef' }
+        kind: { type: string, enum: [OFFICIAL, PRACTICE, AI_GENERATED_PRACTICE] }
+        review_status: { $ref: '#/components/schemas/ReviewStatus' }
+        prompt: { type: string }
+        media_url: { type: string, nullable: true }
+        points: { type: integer, minimum: 1 }
+        required_selections: { type: integer, minimum: 1, maximum: 2, description: 정답 보기 개수(선택 가능 개수) }
+        options:
+          type: array
+          items: { $ref: '#/components/schemas/QuestionOption' }
+        selected_option_ids:
+          type: array
+          items: { type: string, format: uuid }
+    WrittenAttempt:
+      type: object
+      required: [id, mode, status, license_type, question_count, answered_count, max_score, started_at, submitted_at, questions]
+      properties:
+        id: { type: string, format: uuid }
+        mode: { type: string, enum: [PRACTICE] }
+        status: { $ref: '#/components/schemas/WrittenAttemptStatus' }
+        license_type: { $ref: '#/components/schemas/LicenseType' }
+        question_count: { type: integer, minimum: 1, maximum: 40 }
+        answered_count: { type: integer, minimum: 0 }
+        max_score: { type: integer, minimum: 1 }
+        started_at: { type: string, format: date-time }
+        submitted_at: { type: string, format: date-time, nullable: true }
+        questions:
+          type: array
+          items: { $ref: '#/components/schemas/AttemptQuestion' }
+    WrittenAttemptListItem:
+      type: object
+      required: [id, mode, status, question_count, max_score, score, correct_count, started_at, submitted_at]
+      properties:
+        id: { type: string, format: uuid }
+        mode: { type: string, enum: [PRACTICE] }
+        status: { $ref: '#/components/schemas/WrittenAttemptStatus' }
+        question_count: { type: integer }
+        max_score: { type: integer }
+        score: { type: integer, nullable: true }
+        correct_count: { type: integer, nullable: true }
+        started_at: { type: string, format: date-time }
+        submitted_at: { type: string, format: date-time, nullable: true }
+    AnswerSaveRequest:
+      type: object
+      required: [option_ids]
+      properties:
+        option_ids:
+          type: array
+          maxItems: 2
+          items: { type: string, format: uuid }
+          description: 선택한 보기 ID. 빈 배열이면 선택 해제
+    AnswerSaved:
+      type: object
+      required: [attempt_id, question_id, selected_option_ids, updated_at]
+      properties:
+        attempt_id: { type: string, format: uuid }
+        question_id: { type: string, format: uuid }
+        selected_option_ids:
+          type: array
+          items: { type: string, format: uuid }
+        updated_at: { type: string, format: date-time }
+    WrittenResult:
+      type: object
+      required: [attempt_id, mode, status, score, max_score, correct_count, question_count, submitted_at, outcome, outcome_notice, by_category, items]
+      properties:
+        attempt_id: { type: string, format: uuid }
+        mode: { type: string, enum: [PRACTICE] }
+        status: { type: string, enum: [SUBMITTED] }
+        score: { type: integer, minimum: 0 }
+        max_score: { type: integer, minimum: 1 }
+        correct_count: { type: integer, minimum: 0 }
+        question_count: { type: integer, minimum: 1 }
+        submitted_at: { type: string, format: date-time }
+        outcome: { type: string, enum: [PRACTICE_NO_PASS_JUDGEMENT] }
+        outcome_notice: { type: string }
+        by_category:
+          type: array
+          items:
+            type: object
+            required: [category_id, name, correct, total]
+            properties:
+              category_id: { type: string }
+              name: { type: string }
+              correct: { type: integer, minimum: 0 }
+              total: { type: integer, minimum: 1 }
+        items:
+          type: array
+          items:
+            type: object
+            required: [answer_id, position, question_id, prompt, category, is_correct, earned_points, points]
+            properties:
+              answer_id: { type: string, format: uuid, description: '오답 해설 화면 이동에 사용' }
+              position: { type: integer }
+              question_id: { type: string, format: uuid }
+              prompt: { type: string }
+              category: { $ref: '#/components/schemas/CategoryRef' }
+              is_correct: { type: boolean }
+              earned_points: { type: integer, minimum: 0 }
+              points: { type: integer, minimum: 1 }
+    Evidence:
+      type: object
+      description: 문항의 조문 근거 (source_chunks + official_sources)
+      required: [chunk_id, locator, content, source_title, source_url, retrieved_at]
+      properties:
+        chunk_id: { type: string, format: uuid }
+        locator: { type: string, example: 도로교통법 제27조 }
+        content: { type: string }
+        source_title: { type: string }
+        source_url: { type: string }
+        retrieved_at: { type: string, format: date }
+    AnswerReview:
+      type: object
+      required: [answer_id, attempt_id, position, is_correct, earned_points, selected_option_ids, correct_option_ids, question, evidence, prev_answer_id, next_answer_id, latest_ai_job]
+      properties:
+        answer_id: { type: string, format: uuid }
+        attempt_id: { type: string, format: uuid }
+        position: { type: integer }
+        is_correct: { type: boolean }
+        earned_points: { type: integer, minimum: 0 }
+        selected_option_ids:
+          type: array
+          items: { type: string, format: uuid }
+        correct_option_ids:
+          type: array
+          items: { type: string, format: uuid }
+        question:
+          type: object
+          required: [id, code, prompt, points, required_selections, kind, review_status, category, options, explanation]
+          properties:
+            id: { type: string, format: uuid }
+            code: { type: string }
+            prompt: { type: string }
+            points: { type: integer }
+            required_selections: { type: integer }
+            kind: { type: string, enum: [OFFICIAL, PRACTICE, AI_GENERATED_PRACTICE] }
+            review_status: { $ref: '#/components/schemas/ReviewStatus' }
+            category: { $ref: '#/components/schemas/CategoryRef' }
+            options:
+              type: array
+              items:
+                allOf:
+                  - $ref: '#/components/schemas/QuestionOption'
+                  - type: object
+                    required: [is_correct]
+            explanation: { type: string, description: 검수 해설 }
+        evidence: { $ref: '#/components/schemas/Evidence' }
+        prev_answer_id: { type: string, format: uuid, nullable: true }
+        next_answer_id: { type: string, format: uuid, nullable: true }
+        latest_ai_job:
+          allOf:
+            - $ref: '#/components/schemas/AiJob'
+          nullable: true
+          description: 이 답안의 가장 최근 AI 해설 작업 (없으면 null)
+
+    # ---------- 주행 ----------
+    ScenarioKind:
+      type: string
+      description: 기본조작 연습장 / 도로주행
+      enum: [FUNCTION, ROAD]
+    InputMode:
+      type: string
+      enum: [KEYBOARD, SENSOR]
+    ScenarioItem:
+      type: object
+      required: [id, code, version, kind, title, summary, sim_version, length_m, time_limit_s, practice_rule_count, features]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string, example: ROAD_CITY_A }
+        version: { type: string, example: 1.0.0 }
+        kind: { $ref: '#/components/schemas/ScenarioKind' }
+        title: { type: string, example: 도심 도로주행 A코스 }
+        summary: { type: string }
+        sim_version: { type: string, example: sim-1.0.0 }
+        length_m: { type: number }
+        time_limit_s: { type: integer }
+        practice_rule_count: { type: integer, minimum: 0 }
+        features:
+          type: object
+          required: [signals, school_zones, crosswalks, stages]
+          properties:
+            signals: { type: integer }
+            school_zones: { type: integer }
+            crosswalks: { type: integer }
+            stages: { type: integer }
+    CourseDefinition:
+      type: object
+      description: 시뮬레이션 코스 정의(도로 중심선·차로·신호·보호구역·횡단보도·과제 구간). 브라우저와 서버 엔진이 같은 값을 사용합니다.
+      required: [length_m, time_limit_s, signals, school_zones, crosswalks, stages]
+      additionalProperties: true
+      properties:
+        length_m: { type: number }
+        time_limit_s: { type: integer }
+        signals: { type: array, items: { type: object, additionalProperties: true } }
+        school_zones: { type: array, items: { type: object, additionalProperties: true } }
+        crosswalks: { type: array, items: { type: object, additionalProperties: true } }
+        stages: { type: array, items: { type: object, additionalProperties: true } }
+    PracticeRule:
+      type: object
+      required: [code, name_ko, kind, deduction_points, support, method, limitations, locator, event_codes, event_labels]
+      properties:
+        code: { type: string, example: F04 }
+        name_ko: { type: string }
+        kind: { $ref: '#/components/schemas/RuleKind' }
+        deduction_points: { type: integer, nullable: true, description: 실격 항목은 null }
+        support: { $ref: '#/components/schemas/SupportLevel' }
+        method: { type: string, description: 시뮬레이션에서 판정하는 방법 }
+        limitations: { type: string, description: 공식 기준과 다른 점·한계 }
+        locator: { type: string, description: 별표26 내 위치 }
+        event_codes:
+          type: array
+          items: { $ref: '#/components/schemas/DrivingEventCode' }
+        event_labels:
+          type: array
+          items: { type: string }
+    ScenarioDetail:
+      type: object
+      required: [id, code, version, kind, title, summary, sim_version, definition, practice_rules, scoring_notice]
+      properties:
+        id: { type: string, format: uuid }
+        code: { type: string }
+        version: { type: string }
+        kind: { $ref: '#/components/schemas/ScenarioKind' }
+        title: { type: string }
+        summary: { type: string }
+        sim_version: { type: string }
+        definition: { $ref: '#/components/schemas/CourseDefinition' }
+        practice_rules:
+          type: array
+          items: { $ref: '#/components/schemas/PracticeRule' }
+        scoring_notice: { type: string }
+    ScoringRule:
+      type: object
+      required: [code, name_ko, kind, deduction_points, support, method, limitations, locator, auto_scoring_enabled, source_title, source_url, source_version, effective_from]
+      properties:
+        code: { type: string, example: D28 }
+        name_ko: { type: string }
+        kind: { $ref: '#/components/schemas/RuleKind' }
+        deduction_points: { type: integer, nullable: true }
+        support: { $ref: '#/components/schemas/SupportLevel' }
+        method: { type: string }
+        limitations: { type: string }
+        locator: { type: string }
+        auto_scoring_enabled: { type: boolean, description: support=A이고 검증 완료일 때만 true (현재 전부 false) }
+        source_title: { type: string }
+        source_url: { type: string }
+        source_version: { type: string }
+        effective_from: { type: string, format: date, nullable: true }
+    Calibration:
+      type: object
+      description: 센서 정렬 결과 스냅샷. 좌·우 확인이 모두 true인 값만 받습니다.
+      required: [center_deg, invert, enter_deg, exit_deg, stable_spread_deg, left_confirmed, right_confirmed, firmware_format]
+      properties:
+        center_deg: { type: number, minimum: -90, maximum: 90, description: 중앙 3초 안정 구간의 평균 roll }
+        invert: { type: boolean, description: 좌우 부호 반전 }
+        enter_deg: { type: number, minimum: 5, maximum: 30, description: 좌/우 판정 진입 각도 }
+        exit_deg: { type: number, minimum: 2, maximum: 29, description: 중앙 복귀 각도 (enter_deg보다 작아야 함) }
+        smoothing_ms: { type: integer, minimum: 0, maximum: 1000, default: 0 }
+        dwell_ms: { type: integer, minimum: 0, maximum: 1000, default: 0, description: 방향 유지 시간 }
+        stable_spread_deg: { type: number, minimum: 0, maximum: 10 }
+        left_confirmed: { type: boolean, enum: [true] }
+        right_confirmed: { type: boolean, enum: [true] }
+        sample_hz: { type: number, minimum: 0, maximum: 500, nullable: true }
+        firmware_format: { type: string, enum: [WME, ROLL_PITCH, ROLL] }
+        steering_axis: { type: string, enum: [ROLL, PITCH], default: ROLL }
+    TrainingSessionCreateRequest:
+      type: object
+      required: [scenario_id, input_mode]
+      properties:
+        scenario_id: { type: string, format: uuid }
+        input_mode: { $ref: '#/components/schemas/InputMode' }
+        calibration:
+          allOf:
+            - $ref: '#/components/schemas/Calibration'
+          nullable: true
+          description: SENSOR일 때 필수, KEYBOARD일 때 생략
+    TrainingStatus:
+      type: string
+      description: 진행 중 / 완주 / 완주했으나 실격 사유 포함 / 미완료(제한 시간·사용자 종료) / 중단
+      enum: [RUNNING, COMPLETED, DISQUALIFIED, INCOMPLETE, ABORTED]
+    VerificationStatus:
+      type: string
+      description: 서버 재생 결과와 브라우저 결과 일치 여부
+      enum: [PENDING, VERIFIED, MISMATCH, NOT_APPLICABLE]
+    TrainingSessionSummary:
+      type: object
+      required: [id, scenario, input_mode, calibration, status, verification_status, started_at, ended_at, end_reason]
+      properties:
+        id: { type: string, format: uuid }
+        scenario:
+          type: object
+          required: [id, code, version, kind, title]
+          properties:
+            id: { type: string, format: uuid }
+            code: { type: string }
+            version: { type: string }
+            kind: { $ref: '#/components/schemas/ScenarioKind' }
+            title: { type: string }
+        input_mode: { $ref: '#/components/schemas/InputMode' }
+        calibration:
+          allOf:
+            - $ref: '#/components/schemas/Calibration'
+          nullable: true
+        status: { $ref: '#/components/schemas/TrainingStatus' }
+        verification_status: { $ref: '#/components/schemas/VerificationStatus' }
+        started_at: { type: string, format: date-time }
+        ended_at: { type: string, format: date-time, nullable: true }
+        end_reason:
+          type: string
+          nullable: true
+          description: 'COURSE_COMPLETE, TIME_LIMIT, USER_END, TERMINAL_EVENT, RESTART, SENSOR_LOST, USER_EXIT, SUPERSEDED'
+    TrainingSessionListItem:
+      allOf:
+        - $ref: '#/components/schemas/TrainingSessionSummary'
+        - type: object
+          required: [reference_deduction]
+          properties:
+            reference_deduction: { type: integer, nullable: true }
+    TrainingCompleteRequest:
+      type: object
+      required: [total_ticks, inputs, end_reason]
+      properties:
+        total_ticks: { type: integer, minimum: 1, maximum: 18000, description: 30Hz 기준 주행 틱 수 }
+        inputs:
+          type: array
+          maxItems: 20000
+          description: '입력이 바뀐 시점만 기록한 [tick, throttle(-1|0|1), steer(-1|0|1)]. tick은 오름차순이며 total_ticks 미만'
+          items:
+            type: array
+            minItems: 3
+            maxItems: 3
+            items: { type: integer }
+          example: [[0, 1, 0], [45, 1, -1], [80, 0, 0]]
+        client_events:
+          type: array
+          maxItems: 200
+          default: []
+          description: 브라우저 엔진이 감지한 사건 (서버 재생 결과와 비교용)
+          items:
+            type: object
+            required: [code, tick]
+            properties:
+              code: { type: string, maxLength: 40 }
+              tick: { type: integer, minimum: 0 }
+        end_reason: { type: string, enum: [TERMINAL_EVENT, USER_END] }
+        pause_count: { type: integer, minimum: 0, maximum: 1000, default: 0 }
+    TrainingAbortRequest:
+      type: object
+      required: [reason]
+      properties:
+        reason: { type: string, enum: [RESTART, SENSOR_LOST, USER_EXIT] }
+    DrivingEventCode:
+      type: string
+      enum: [SIGNAL_RED, CROSSWALK_OVERRUN, CROSSWALK_NO_STOP, PEDESTRIAN_CONFLICT, SCHOOL_ZONE_SPEEDING, SPEEDING, CENTER_LINE, LANE_KEEP, OFF_ROAD, START_DELAY, STAGE_CLEAR, COURSE_COMPLETE, TIME_LIMIT]
+    DrivingEvent:
+      type: object
+      required: [seq, code, label, tick, time_s, s_m, speed_kmh, terminal, category_id, evidence, rule]
+      properties:
+        seq: { type: integer, minimum: 1 }
+        code: { $ref: '#/components/schemas/DrivingEventCode' }
+        label: { type: string, example: 적색 신호에 정지선 통과 }
+        tick: { type: integer, minimum: 0 }
+        time_s: { type: number }
+        s_m: { type: number, description: 코스 시작점부터 거리(m) }
+        speed_kmh: { type: number, minimum: 0 }
+        terminal: { type: boolean, description: 주행을 끝낸 사건(완주·제한 시간) }
+        category_id: { type: string, example: DRV_SIGNAL }
+        evidence:
+          type: object
+          additionalProperties: true
+          description: '사건 판정 근거 값 (예: 신호 상태, 제한속도, 차로 중심 거리)'
+        rule:
+          type: object
+          nullable: true
+          description: 연결된 별표26 항목 (기본조작 코스·완주 사건은 null)
+          required: [code, name_ko, kind, deduction_points, support, locator]
+          properties:
+            code: { type: string }
+            name_ko: { type: string }
+            kind: { $ref: '#/components/schemas/RuleKind' }
+            deduction_points: { type: integer, nullable: true }
+            support: { $ref: '#/components/schemas/SupportLevel' }
+            locator: { type: string }
+    TrainingResult:
+      allOf:
+        - $ref: '#/components/schemas/TrainingSessionSummary'
+        - type: object
+          required: [total_ticks, duration_s, distance_m, max_speed_kmh, pause_count, reference_deduction, official_scoring, events, scoring_notice, unmeasured]
+          properties:
+            total_ticks: { type: integer }
+            duration_s: { type: number }
+            distance_m: { type: number, nullable: true }
+            max_speed_kmh: { type: number, nullable: true }
+            pause_count: { type: integer }
+            reference_deduction: { type: integer, nullable: true, description: 도로 코스에서 감점 항목 공식 감점값의 합(참고용). 기본조작은 null }
+            official_scoring: { type: boolean, enum: [false] }
+            events:
+              type: array
+              items: { $ref: '#/components/schemas/DrivingEvent' }
+            scoring_notice: { type: string }
+            unmeasured:
+              type: array
+              description: 시뮬레이션이 측정하지 않는 공식 평가 행동
+              items: { type: string }
+    TrainingSessionDetail:
+      allOf:
+        - $ref: '#/components/schemas/TrainingResult'
+        - type: object
+          properties:
+            replay:
+              type: object
+              description: 저장된 입력 기록 (완료된 세션만)
+              required: [inputs, total_ticks]
+              properties:
+                inputs:
+                  type: array
+                  items:
+                    type: array
+                    items: { type: integer }
+                total_ticks: { type: integer }
+
+    # ---------- AI ----------
+    AiJobKind:
+      type: string
+      enum: [EXPLANATION, REPORT]
+    AiJobStatus:
+      type: string
+      description: 'QUEUED 대기 / RUNNING 생성 중 / SUCCEEDED AI 성공 / FALLBACK AI 실패 → 규칙 기반 리포트 / INSUFFICIENT_DATA 기록 부족 / FAILED 실패'
+      enum: [QUEUED, RUNNING, SUCCEEDED, FALLBACK, INSUFFICIENT_DATA, FAILED]
+    AiJobCreateRequest:
+      type: object
+      required: [kind]
+      properties:
+        kind: { $ref: '#/components/schemas/AiJobKind' }
+        answer_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: EXPLANATION일 때 필수, REPORT일 때 생략
+    Citation:
+      type: object
+      required: [chunk_id, claim_key, locator, content, source_title, source_url]
+      properties:
+        chunk_id: { type: string, format: uuid }
+        claim_key: { type: string, example: explanation }
+        locator: { type: string }
+        content: { type: string }
+        source_title: { type: string }
+        source_url: { type: string }
+    ExplanationResult:
+      type: object
+      required: [summary, why_selected_wrong, key_rule, memory_tip, citation_chunk_ids]
+      properties:
+        summary: { type: string, maxLength: 200 }
+        why_selected_wrong: { type: string, maxLength: 600 }
+        key_rule: { type: string, maxLength: 300 }
+        memory_tip: { type: string, maxLength: 160 }
+        citation_chunk_ids:
+          type: array
+          minItems: 1
+          items: { type: string, format: uuid }
+    ReportStats:
+      type: object
+      description: 서버가 저장 기록으로 계산한 통계 (최근 제출 필기 10회·주행 10회)
+      required: [written, driving, evidence_ids, allowed_refs, recommended_question_counts, unmeasured, rule_based, sufficient]
+      properties:
+        written:
+          type: object
+          required: [attempts, categories, total_correct, total_answers]
+          properties:
+            attempts:
+              type: array
+              items:
+                type: object
+                required: [id, submitted_at, correct, total]
+                properties:
+                  id: { type: string, format: uuid }
+                  submitted_at: { type: string, format: date-time }
+                  correct: { type: integer }
+                  total: { type: integer }
+            categories:
+              type: array
+              items:
+                type: object
+                required: [id, name, correct, total, accuracy_pct]
+                properties:
+                  id: { type: string }
+                  name: { type: string }
+                  correct: { type: integer }
+                  total: { type: integer }
+                  accuracy_pct: { type: integer, minimum: 0, maximum: 100 }
+            total_correct: { type: integer }
+            total_answers: { type: integer }
+        driving:
+          type: object
+          required: [sessions, event_counts, total_sessions, disqualified_sessions, completed_sessions]
+          properties:
+            sessions:
+              type: array
+              items:
+                type: object
+                required: [id, scenario, scenario_code, status, events]
+                properties:
+                  id: { type: string, format: uuid }
+                  scenario: { type: string }
+                  scenario_code: { type: string }
+                  status: { $ref: '#/components/schemas/TrainingStatus' }
+                  events:
+                    type: array
+                    items: { $ref: '#/components/schemas/DrivingEventCode' }
+            event_counts:
+              type: array
+              items:
+                type: object
+                required: [code, label, count]
+                properties:
+                  code: { $ref: '#/components/schemas/DrivingEventCode' }
+                  label: { type: string }
+                  count: { type: integer, minimum: 1 }
+            total_sessions: { type: integer }
+            disqualified_sessions: { type: integer }
+            completed_sessions: { type: integer }
+        evidence_ids:
+          type: array
+          description: 'AI가 인용할 수 있는 근거 ID. WA:필기시도 · TS:주행세션 · CAT:주제 · EV:사건코드'
+          items: { type: string, example: 'CAT:SIGNAL' }
+        allowed_refs:
+          type: array
+          items: { type: string }
+        recommended_question_counts:
+          type: array
+          items: { type: integer }
+        unmeasured:
+          type: array
+          items: { type: string }
+        rule_based:
+          type: object
+          additionalProperties: true
+          description: 규칙 기반 가장 약한 주제·가장 잦은 사건·추천
+        sufficient: { type: boolean, description: 필기 답안 5개 이상 또는 주행 1회 이상 }
+    ReportNarrative:
+      type: object
+      required: [headline, summary, focus_areas, next_steps]
+      properties:
+        headline: { type: string, maxLength: 60 }
+        summary: { type: string, maxLength: 500 }
+        focus_areas:
+          type: array
+          maxItems: 3
+          items:
+            type: object
+            required: [title, reason, evidence_ids]
+            properties:
+              title: { type: string, maxLength: 60 }
+              reason: { type: string, maxLength: 300 }
+              evidence_ids:
+                type: array
+                minItems: 1
+                items: { type: string }
+        next_steps:
+          type: array
+          maxItems: 3
+          items:
+            type: object
+            required: [title, detail, target, ref]
+            properties:
+              title: { type: string, maxLength: 60 }
+              detail: { type: string, maxLength: 300 }
+              target: { type: string, enum: [WRITTEN, DRIVE] }
+              ref: { type: string, description: 필기 주제 ID 또는 코스 code }
+    ReportResult:
+      type: object
+      required: [stats, narrative, narrative_source]
+      properties:
+        stats: { $ref: '#/components/schemas/ReportStats' }
+        narrative: { $ref: '#/components/schemas/ReportNarrative' }
+        narrative_source: { type: string, enum: [llm, rule], description: AI 서술인지 규칙 기반 서술인지 }
+    AiJob:
+      type: object
+      required: [id, kind, answer_id, status, result, model_version, prompt_version, error_code, error_message, created_at, finished_at, citations]
+      properties:
+        id: { type: string, format: uuid }
+        kind: { $ref: '#/components/schemas/AiJobKind' }
+        answer_id: { type: string, format: uuid, nullable: true }
+        status: { $ref: '#/components/schemas/AiJobStatus' }
+        result:
+          nullable: true
+          description: 'EXPLANATION이면 ExplanationResult, REPORT이면 ReportResult. 완료 전·실패 시 null'
+          oneOf:
+            - $ref: '#/components/schemas/ExplanationResult'
+            - $ref: '#/components/schemas/ReportResult'
+        model_version: { type: string, nullable: true }
+        prompt_version: { type: string, example: explain-1.0.0 }
+        error_code: { type: string, nullable: true, example: LLM_TIMEOUT }
+        error_message: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+        finished_at: { type: string, format: date-time, nullable: true }
+        citations:
+          type: array
+          items: { $ref: '#/components/schemas/Citation' }

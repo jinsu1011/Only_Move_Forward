@@ -128,6 +128,7 @@ export class DriveScene3D {
   private readonly pedestrians: PedestrianVisual[] = []
   private readonly resizeObserver: ResizeObserver
   private disposed = false
+  private rendered = false
 
   constructor(private readonly host: HTMLElement, private readonly initialSim: Sim) {
     this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' })
@@ -166,6 +167,8 @@ export class DriveScene3D {
     this.renderer.setSize(width, height, false)
     this.camera.aspect = width / height
     this.camera.updateProjectionMatrix()
+    // setSize 가 캔버스를 지우므로, 한 번만 그리는 결과 화면도 마지막 장면을 다시 그린다
+    if (this.rendered && !this.disposed) this.renderer.render(this.scene, this.camera)
   }
 
   private buildWorld(sim: Sim) {
@@ -343,6 +346,7 @@ export class DriveScene3D {
     }
     this.camera.updateProjectionMatrix()
     this.renderer.render(this.scene, this.camera)
+    this.rendered = true
   }
 
   dispose() {

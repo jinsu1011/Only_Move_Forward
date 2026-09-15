@@ -1,0 +1,415 @@
+Project only_move_forward {
+  database_type: 'PostgreSQL'
+  Note: '''
+  # 전진만할게요 — 운전면허 학습 보조 서비스 데이터 모델
+  - 필기 연습(시도·문항·답안), 주행 연습(세션·사건), 공식 근거(출처·조문·채점기준), AI(작업·인용)를 저장한다.
+  - 공식 자료·문항·코스는 code+version 으로 보존하고 과거 결과를 덮어쓰지 않는다.
+  - 시연 구현은 SQLite(같은 테이블·제약)이며, 여기서는 PostgreSQL 논리 타입으로 표기한다.
+  - CHECK 제약은 각 컬럼/테이블 Note 에 적는다.
+  '''
+}
+
+// ---------------- Enums ----------------
+Enum license_type {
+  CLASS1_ORDINARY [note: '1종 보통']
+  CLASS2_ORDINARY [note: '2종 보통']
+}
+
+Enum review_status {
+  PENDING [note: '검수 전 — 사용하지 않음']
+  SELF_REVIEWED [note: '개발자 자체 검수']
+  APPROVED
+  REJECTED
+}
+
+Enum category_domain {
+  WRITTEN [note: '필기 주제']
+  DRIVING [note: '주행 사건 분류']
+}
+
+Enum question_kind {
+  OFFICIAL [note: '공식 문제은행 (이용 조건 확인 전 미사용)']
+  PRACTICE [note: '자체 제작 연습 문항']
+  AI_GENERATED_PRACTICE [note: '예약 — 현재 출제하지 않음']
+}
+
+Enum license_scope {
+  ALL
+  CLASS1_ORDINARY
+  CLASS2_ORDINARY
+}
+
+Enum attempt_mode {
+  PRACTICE [note: '주제별 연습 (모의고사는 검수 전 비활성)']
+}
+
+Enum attempt_status {
+  IN_PROGRESS
+  SUBMITTED
+  ABORTED
+}
+
+Enum rule_kind {
+  DEDUCTION [note: '감점']
+  DISQUALIFICATION [note: '실격']
+}
+
+Enum support_level {
+  A [note: '자동 채점 (검증 후에만 활성)']
+  B [note: '연습용 표시']
+  C [note: '안내만']
+}
+
+Enum scenario_kind {
+  FUNCTION [note: '기본조작 연습장']
+  ROAD [note: '도로주행 코스']
+}
+
+Enum input_mode {
+  KEYBOARD [note: 'W/S 전진·후진, A/D 조향']
+  SENSOR [note: '방향키 ↑/↓ 전진·후진, MPU-6050 roll 조향']
+}
+
+Enum training_status {
+  RUNNING
+  COMPLETED [note: '완주, 실격 해당 사건 0건']
+  DISQUALIFIED [note: '완주했으나 실격 해당 사건 1건 이상']
+  INCOMPLETE [note: '제한 시간·사용자 종료']
+  ABORTED [note: 'R 다시 정렬·센서 단절·나가기·새 세션으로 대체']
+}
+
+Enum verification_status {
+  PENDING
+  VERIFIED [note: '서버 재생 결과와 브라우저 결과 일치']
+  MISMATCH
+  NOT_APPLICABLE
+}
+
+Enum ai_job_kind {
+  EXPLANATION [note: '오답 해설']
+  REPORT [note: '통합 학습 리포트']
+}
+
+Enum ai_job_status {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FALLBACK [note: 'AI 실패 → 규칙 기반 리포트']
+  INSUFFICIENT_DATA
+  FAILED
+}
+
+// ---------------- 사용자·인증 ----------------
+Table users {
+  id uuid [pk]
+  email varchar(254) [not null, unique, note: '소문자 정규화']
+  password_hash varchar(255) [not null, note: 'scrypt$N$r$p$salt$hash — 평문 저장 안 함']
+  nickname varchar(20) [not null, note: 'CHECK 길이 2~20']
+  license_type license_type [not null]
+  created_at timestamptz [not null]
+  Note: '서비스 사용자(학습자)'
+}
+
+Table auth_sessions {
+  id uuid [pk]
+  user_id uuid [not null, ref: > users.id]
+  token_hash char(64) [not null, unique, note: '쿠키 토큰의 SHA-256 — 원문 토큰은 저장 안 함']
+  created_at timestamptz [not null]
+  expires_at timestamptz [not null, note: '발급 후 7일']
+  revoked_at timestamptz [note: '로그아웃 시각']
+  Note: '서버 인증 세션 (HttpOnly 쿠키 lf_session)'
+}
+
+Table idempotency_keys {
+  id uuid [pk]
+  user_id uuid [not null, ref: > users.id]
+  route varchar(60) [not null, note: '예: POST /training/sessions']
+  request_key varchar(64) [not null, note: 'Idempotency-Key 헤더']
+  body_hash char(64) [not null, note: '같은 키에 다른 본문이면 409']
+  status_code smallint [not null]
+  response jsonb [not null, note: '처음 응답 — 재시도 시 그대로 반환']
+  created_at timestamptz [not null]
+  indexes {
+    (user_id, route, request_key) [unique]
+  }
+  Note: '생성 API 재시도 중복 방지'
+}
+
+// ---------------- 공식 근거 ----------------
+Table official_sources {
+  id uuid [pk]
+  title varchar(200) [not null]
+  publisher varchar(100) [not null, note: '법제처, 도로교통공단']
+  url text [not null]
+  version varchar(60) [not null, note: '개정일 또는 조회일']
+  effective_from date [note: '시행일 (미확인이면 null)']
+  retrieved_at date [not null]
+  reuse_terms text [not null, note: '이용 조건']
+  review_status review_status [not null]
+  indexes {
+    (url, version) [unique]
+  }
+  Note: '공식 자료 버전. 새 버전은 새 행으로 추가'
+}
+
+Table source_chunks {
+  id uuid [pk]
+  source_id uuid [not null, ref: > official_sources.id]
+  locator varchar(120) [not null, note: '예: 도로교통법 제27조']
+  content text [not null, note: '조문 요약 — AI 인용 대상']
+  indexes {
+    (source_id, locator) [unique]
+  }
+}
+
+Table guide_steps {
+  id uuid [pk]
+  source_id uuid [not null, ref: > official_sources.id]
+  step_order smallint [not null, note: 'CHECK > 0']
+  title varchar(60) [not null]
+  content text [not null]
+  indexes {
+    (source_id, step_order) [unique]
+  }
+  Note: '면허 취득 절차 안내 (소개 화면)'
+}
+
+Table categories {
+  id varchar(30) [pk, note: '예: SIGNAL, DRV_LANE']
+  domain category_domain [not null]
+  name_ko varchar(60) [not null]
+  sort_order smallint [not null]
+  Note: '필기 주제와 주행 사건 분류를 함께 관리 — 통합 취약점 분석의 기준'
+}
+
+// ---------------- 필기 ----------------
+Table questions {
+  id uuid [pk]
+  source_id uuid [not null, ref: > official_sources.id]
+  chunk_id uuid [not null, ref: > source_chunks.id, note: '정답 근거 조문']
+  category_id varchar(30) [not null, ref: > categories.id]
+  code varchar(30) [not null]
+  version int [not null, default: 1, note: 'CHECK > 0']
+  kind question_kind [not null]
+  license_scope license_scope [not null]
+  prompt text [not null]
+  media_url text
+  points smallint [not null, note: 'CHECK > 0']
+  required_selections smallint [not null, note: 'CHECK 1~2 (정답 개수)']
+  explanation text [not null, note: '검수 해설']
+  review_status review_status [not null, note: 'SELF_REVIEWED·APPROVED 만 출제']
+  indexes {
+    (code, version) [unique]
+  }
+  Note: '문항은 수정하지 않고 새 version 으로 추가 — 과거 답안 보존'
+}
+
+Table question_options {
+  id uuid [pk]
+  question_id uuid [not null, ref: > questions.id]
+  position smallint [not null, note: 'CHECK 1~5']
+  content text [not null]
+  is_correct boolean [not null, note: '제출 전 API 응답에 포함하지 않음']
+  indexes {
+    (question_id, position) [unique]
+  }
+}
+
+Table written_attempts {
+  id uuid [pk]
+  user_id uuid [not null, ref: > users.id]
+  license_type license_type [not null, note: '시작 시점 면허 종별 스냅샷']
+  mode attempt_mode [not null]
+  status attempt_status [not null]
+  question_count smallint [not null, note: 'CHECK 1~40']
+  max_score int [not null, note: 'CHECK > 0']
+  started_at timestamptz [not null]
+  submitted_at timestamptz
+  score int [note: 'CHECK 0 ≤ score ≤ max_score']
+  correct_count smallint [note: 'CHECK 0 ≤ correct_count ≤ question_count']
+  indexes {
+    (user_id, started_at)
+  }
+  Note: 'CHECK (status = SUBMITTED) ⇔ (submitted_at, score, correct_count 모두 NOT NULL). 점수는 서버 채점'
+}
+
+Table attempt_questions {
+  id uuid [pk]
+  attempt_id uuid [not null, ref: > written_attempts.id]
+  question_id uuid [not null, ref: > questions.id]
+  position smallint [not null, note: 'CHECK > 0']
+  indexes {
+    (attempt_id, position) [unique]
+    (attempt_id, question_id) [unique]
+  }
+  Note: '시도 ↔ 문항 M:N 해소 (출제 순서)'
+}
+
+Table written_answers {
+  id uuid [pk]
+  attempt_question_id uuid [not null, unique, ref: - attempt_questions.id, note: '출제 문항당 답안 1개']
+  is_correct boolean [note: '제출 시 서버 채점']
+  earned_points smallint [note: 'CHECK ≥ 0']
+  updated_at timestamptz [not null]
+}
+
+Table answer_selections {
+  answer_id uuid [not null, ref: > written_answers.id]
+  option_id uuid [not null, ref: > question_options.id]
+  indexes {
+    (answer_id, option_id) [pk]
+  }
+  Note: '답안 ↔ 보기 M:N (복수 정답 문항). 트리거로 보기가 같은 문항 소속인지 검사'
+}
+
+// ---------------- 주행 ----------------
+Table official_scoring_rules {
+  id uuid [pk]
+  source_id uuid [not null, ref: > official_sources.id, note: '별표26 버전']
+  category_id varchar(30) [ref: > categories.id]
+  code varchar(10) [not null, note: 'D01~D46 감점, F01~F11 실격']
+  name_ko varchar(200) [not null]
+  kind rule_kind [not null]
+  deduction_points smallint [note: 'CHECK DEDUCTION이면 > 0, DISQUALIFICATION이면 NULL']
+  support support_level [not null]
+  method text [not null, note: '시뮬레이션 판정 방법']
+  limitations text [not null, note: '공식 기준과의 차이']
+  locator varchar(120) [not null]
+  auto_scoring_enabled boolean [not null, default: false, note: 'CHECK true 이면 support = A. 현재 전부 false']
+  indexes {
+    (source_id, code) [unique]
+  }
+  Note: '도로주행시험 채점기준 57항목(감점 46·실격 11)'
+}
+
+Table scenarios {
+  id uuid [pk]
+  code varchar(30) [not null, note: 'FUNCTION_BASIC, ROAD_CITY_A']
+  version varchar(20) [not null]
+  kind scenario_kind [not null]
+  title varchar(60) [not null]
+  summary text [not null]
+  sim_version varchar(20) [not null, note: '판정 엔진 버전 (sim-1.0.0)']
+  definition jsonb [not null, note: '도로 중심선·차로·신호·보호구역·횡단보도·과제 구간·제한 시간']
+  is_active boolean [not null, default: true]
+  indexes {
+    (code, version) [unique]
+  }
+}
+
+Table scenario_rules {
+  scenario_id uuid [not null, ref: > scenarios.id]
+  rule_id uuid [not null, ref: > official_scoring_rules.id]
+  event_code varchar(40) [not null, note: '이 규칙을 판정하는 시뮬레이션 사건']
+  indexes {
+    (scenario_id, rule_id, event_code) [pk]
+  }
+  Note: '코스 ↔ 채점 규칙 M:N'
+}
+
+Table training_sessions {
+  id uuid [pk]
+  user_id uuid [not null, ref: > users.id]
+  scenario_id uuid [not null, ref: > scenarios.id, note: '코스 버전 고정']
+  input_mode input_mode [not null]
+  calibration_snapshot jsonb [note: '센서 보정값: center_deg, invert, enter_deg, exit_deg, smoothing_ms, dwell_ms, stable_spread_deg, left/right_confirmed, sample_hz, firmware_format, steering_axis']
+  status training_status [not null]
+  verification_status verification_status [not null]
+  started_at timestamptz [not null]
+  ended_at timestamptz
+  total_ticks int [note: '30Hz 틱. CHECK ≥ 0']
+  input_log jsonb [note: '[tick, throttle, steer] 변화 기록 — 서버 재생 원본']
+  input_hash char(64) [note: '같은 입력 재전송 판별']
+  pause_count int [not null, default: 0]
+  end_reason varchar(30) [note: 'COURSE_COMPLETE, TIME_LIMIT, USER_END, RESTART, SENSOR_LOST, USER_EXIT, SUPERSEDED']
+  distance_m real
+  max_speed_kmh real
+  reference_deduction smallint [note: '도로 코스 참고 감점 합 (공식 채점 아님)']
+  indexes {
+    (user_id, started_at)
+  }
+  Note: 'CHECK (input_mode = SENSOR) ⇔ (calibration_snapshot NOT NULL); CHECK (status = RUNNING) ⇔ (ended_at IS NULL)'
+}
+
+Table driving_events {
+  id uuid [pk]
+  session_id uuid [not null, ref: > training_sessions.id]
+  seq int [not null, note: 'CHECK > 0']
+  event_code varchar(40) [not null, note: 'SIGNAL_RED, SPEEDING, LANE_KEEP, COURSE_COMPLETE …']
+  rule_id uuid [ref: > official_scoring_rules.id, note: '연결 공식 항목 (기본조작·완주 사건은 null)']
+  category_id varchar(30) [not null, ref: > categories.id]
+  tick int [not null]
+  s_m real [not null, note: '코스 진행 거리']
+  speed_kmh real [not null, note: 'CHECK ≥ 0']
+  is_terminal boolean [not null]
+  evidence jsonb [not null, note: '판정 근거 값']
+  indexes {
+    (session_id, seq) [unique]
+  }
+  Note: '서버 재생으로 확정한 사건. 실격 해당 사건도 주행을 끊지 않고 누적'
+}
+
+// ---------------- AI ----------------
+Table ai_jobs {
+  id uuid [pk]
+  user_id uuid [not null, ref: > users.id]
+  kind ai_job_kind [not null]
+  answer_id uuid [ref: > written_answers.id, note: 'CHECK (kind = EXPLANATION) ⇔ (answer_id NOT NULL)']
+  status ai_job_status [not null]
+  evidence_snapshot jsonb [not null, note: '요청 시점에 서버가 만든 입력(문항·정답·근거 또는 통계) — AI는 이것만 봄']
+  result jsonb [note: 'ExplanationResult 또는 {stats, narrative, narrative_source}']
+  model_version varchar(60)
+  prompt_version varchar(30) [not null]
+  error_code varchar(40)
+  created_at timestamptz [not null]
+  finished_at timestamptz
+  indexes {
+    (user_id, created_at)
+  }
+}
+
+Table ai_citations {
+  id uuid [pk]
+  job_id uuid [not null, ref: > ai_jobs.id]
+  chunk_id uuid [not null, ref: > source_chunks.id]
+  claim_key varchar(40) [not null]
+  indexes {
+    (job_id, chunk_id, claim_key) [unique]
+  }
+  Note: 'AI 작업 ↔ 조문 근거 M:N (서버가 인용 ID 검증 후 저장)'
+}
+
+TableGroup auth {
+  users
+  auth_sessions
+  idempotency_keys
+}
+
+TableGroup official_evidence {
+  official_sources
+  source_chunks
+  guide_steps
+  categories
+}
+
+TableGroup written {
+  questions
+  question_options
+  written_attempts
+  attempt_questions
+  written_answers
+  answer_selections
+}
+
+TableGroup driving {
+  official_scoring_rules
+  scenarios
+  scenario_rules
+  training_sessions
+  driving_events
+}
+
+TableGroup ai {
+  ai_jobs
+  ai_citations
+}

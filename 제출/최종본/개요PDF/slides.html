@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>9반_P286_김진수_전진만할게요-개요</title>
+<style>
+  :root {
+    --ink: #17221c; --body: #45524b; --muted: #87918b; --line: #e3ddd2; --paper: #f3f0ea; --card: #ffffff;
+    --green: #1b4d3a; --green-soft: #e1ece5; --orange: #e0701f; --orange-soft: #fbeadb; --red: #d63b3b; --blue: #2563c9;
+  }
+  @page { size: 1920px 1080px; margin: 0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", sans-serif; color: var(--ink); background: #888; -webkit-font-smoothing: antialiased; }
+  .slide { width: 1920px; height: 1080px; position: relative; overflow: hidden; break-after: page; background: var(--paper); margin: 0 auto; }
+  .pad { padding: 64px 100px 0; }
+  .eyebrow { color: var(--orange); font-weight: 800; font-size: 22px; letter-spacing: .06em; }
+  .h2 { margin-top: 10px; font-weight: 800; font-size: 46px; line-height: 1.28; letter-spacing: -0.02em; }
+  .sub { margin-top: 10px; font-size: 22px; color: var(--body); }
+  .foot { position: absolute; left: 100px; right: 100px; bottom: 30px; display: flex; justify-content: space-between; color: var(--muted); font-size: 16px; }
+  b { font-weight: 800; }
+  table.t { width: 100%; border-collapse: collapse; font-size: 21px; background: var(--card); }
+  table.t th { text-align: left; font-weight: 800; color: #fff; background: var(--green); padding: 12px 16px; }
+  table.t td { padding: 11px 16px; border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.5; color: var(--body); }
+  table.t td:first-child { color: var(--ink); font-weight: 700; }
+  table.t.s { font-size: 17px; } table.t.s th, table.t.s td { padding: 7px 11px; }
+  table.t.xs { font-size: 15px; } table.t.xs th, table.t.xs td { padding: 5px 9px; line-height: 1.35; }
+  code, .mono { font-family: "SF Mono", Menlo, monospace; font-size: .86em; }
+  .m { font-family: "SF Mono", Menlo, monospace; font-weight: 700; font-size: .78em; padding: 1px 7px; border-radius: 4px; color: #fff; }
+  .m.get { background: var(--blue); } .m.post { background: #1f8a4c; } .m.put { background: var(--orange); }
+  .tag { display: inline-block; padding: 2px 10px; border-radius: 4px; font-size: .8em; font-weight: 800; background: var(--green-soft); color: var(--green); }
+  .tag.o { background: var(--orange-soft); color: #b0520f; } .tag.r { background: #fbe1e1; color: var(--red); }
+  .grid { display: grid; gap: 24px; }
+  .card { background: var(--card); border: 1px solid var(--line); padding: 26px 30px; }
+  .card h4 { font-size: 26px; font-weight: 800; }
+  .card p { margin-top: 10px; font-size: 20px; line-height: 1.6; color: var(--body); }
+  .num { color: var(--orange); font-weight: 900; font-size: 20px; }
+  .big { font-size: 60px; font-weight: 900; color: var(--green); letter-spacing: -0.02em; }
+  .big small { font-size: 24px; color: var(--body); font-weight: 700; margin-left: 4px; }
+
+  .ui { display: grid; gap: 30px; margin-top: 24px; align-items: start; }
+  .shot { position: relative; overflow: hidden; border: 1px solid #cfc8bb; background: #fff; box-shadow: 0 10px 28px rgba(23,34,28,.10); }
+  .shot img { display: block; width: 100%; }
+  .shot.crop img { object-fit: cover; object-position: top; height: 100%; }
+  .cap { margin-top: 8px; font-size: 16px; color: var(--muted); }
+  .notes { list-style: none; }
+  .notes li { display: grid; grid-template-columns: 34px 1fr; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--line); font-size: 19px; line-height: 1.5; color: var(--body); }
+  .notes li:last-child { border-bottom: 0; }
+  .notes .n { width: 28px; height: 28px; border-radius: 50%; background: var(--orange); color: #fff; font-weight: 900; font-size: 15px; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
+  .notes .api { display: block; margin-top: 3px; font-size: 15px; color: var(--blue); font-family: "SF Mono", Menlo, monospace; }
+  .notes .go { display: block; margin-top: 3px; font-size: 16px; color: #1f8a4c; font-weight: 800; }
+  .notes .ex { display: block; margin-top: 3px; font-size: 16px; color: var(--red); font-weight: 700; }
+  .legend { display: flex; gap: 20px; font-size: 16px; font-weight: 700; } .legend .b { color: var(--blue); } .legend .g { color: #1f8a4c; } .legend .r { color: var(--red); }
+
+  .flow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .node { background: #fff; border: 2px solid var(--line); padding: 12px 14px; font-size: 19px; font-weight: 800; white-space: nowrap; }
+  .node small { display: block; font-size: 14px; color: var(--muted); font-weight: 600; margin-top: 2px; font-family: "SF Mono", Menlo, monospace; }
+  .node.key { border-color: var(--green); } .node.ai { border-color: var(--orange); }
+  .arrow { color: var(--muted); font-size: 24px; font-weight: 900; }
+  .lane-label { font-size: 18px; font-weight: 900; color: var(--green); width: 130px; }
+  .cover { background: var(--green); color: #fff; display: flex; flex-direction: column; justify-content: center; padding: 0 140px; }
+  .cover .title { font-size: 140px; font-weight: 900; letter-spacing: -0.04em; line-height: 1; }
+  .cover .title span { color: var(--orange); }
+  .point { border-left: 6px solid var(--orange); background: #fff; padding: 16px 22px; font-size: 19px; line-height: 1.55; color: var(--body); }
+  .point b { color: var(--ink); }
+  @media screen { .slide { margin-bottom: 24px; } }
+</style>
+</head>
+<body>
+
+<!-- 1 표지 -->
+<section class="slide cover">
+  <div style="font-size:26px;font-weight:800;opacity:.8">9반 · P286 · 김진수 &nbsp;|&nbsp; 프로젝트 기술서</div>
+  <div class="title" style="margin-top:36px">전진만할게요<span>.</span></div>
+  <div style="margin-top:34px;font-size:40px;font-weight:700;line-height:1.4">필기 오답과 주행 실수를 하나의 기록으로 코칭하는<br>1·2종 보통 운전면허 학습 보조 웹 서비스</div>
+  <div style="margin-top:60px;font-size:22px;opacity:.75;font-family:'SF Mono',Menlo,monospace;line-height:1.7">9반_P286_김진수_전진만할게요-개요.pdf<br>9반_P286_김진수_전진만할게요-API.yml<br>9반_P286_김진수_전진만할게요-DB.dbml</div>
+  <div style="position:absolute;right:140px;bottom:60px;font-size:20px;opacity:.7">AI 웹 서비스 설계 Mini-project · 2026.09</div>
+</section>
+
+<!-- 2 목차 -->
+<section class="slide pad">
+  <div class="eyebrow">CONTENTS</div>
+  <div class="h2">목차</div>
+  <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:40px;gap:22px 60px">
+    <div class="card"><h4><span class="num">01</span> 서비스 개요</h4><p>서비스 이름 · 기획 배경과 문제 정의 · 핵심 가치와 주요 기능 · 범위</p></div>
+    <div class="card"><h4><span class="num">02</span> 시스템 액터 정의</h4><p>학습자 · 방문자 · LLM 서비스 · 센서 핸들(MPU-6050)</p></div>
+    <div class="card"><h4><span class="num">03</span> 기능 요구사항</h4><p>액터별 기능 18개와 화면 · API 연결</p></div>
+    <div class="card"><h4><span class="num">04</span> UI 흐름도</h4><p>화면 13개 전체 흐름 · 화면별 구성 요소와 호출 API · 예외 흐름</p></div>
+    <div class="card"><h4><span class="num">05</span> 데이터 모델 설계</h4><p>ERD 20테이블 · 테이블 그룹 5개 · 화면↔API↔DB 대응</p></div>
+    <div class="card"><h4><span class="num">06</span> API 명세 정의</h4><p>OpenAPI 3.0.3 · 24경로 27동작 · 요청/응답/예외 · 실제 응답 대조</p></div>
+    <div class="card"><h4><span class="num">07</span> 고려사항</h4><p>설계에서 고민한 점 · 검증 결과와 한계 · 다음 단계</p></div>
+  </div>
+</section>
+
+<!-- 3 서비스 개요 -->
+<section class="slide pad">
+  <div class="eyebrow">01 서비스 개요</div>
+  <div class="h2">필기와 주행 연습 기록을 모아, 근거 있는 다음 연습을 정해 줍니다</div>
+  <table class="t" style="margin-top:34px">
+    <tr><th style="width:260px">항목</th><th>내용</th></tr>
+    <tr><td>서비스 이름</td><td><b>전진만할게요</b> — 앞으로 나아가는 연습만 쌓자는 뜻</td></tr>
+    <tr><td>서비스 형태</td><td>브라우저로 쓰는 개인 학습 웹 서비스 (Chrome 권장, 센서 핸들은 선택)</td></tr>
+    <tr><td>타깃 사용자</td><td>1종·2종 보통 운전면허를 준비하는 학습자 (학과시험 ~ 도로주행시험 준비 단계)</td></tr>
+    <tr><td>목적</td><td>필기 오답의 이유를 조문 근거로 이해하고, 도로주행 채점기준에 해당하는 실수를 시뮬레이션에서 미리 겪어 보게 한다</td></tr>
+    <tr><td>주요 기능</td><td>① 주제별 필기 연습·채점 ② 오답 해설 + AI 설명 ③ 기본조작·도로주행 3D 시뮬레이션(키보드 / 센서 핸들) ④ 서버 재생 검증 결과 ⑤ AI 통합 학습 리포트</td></tr>
+    <tr><td>포지셔닝</td><td><span class="tag r">대체하지 않음</span> 공식 시험·실차교육을 대체하지 않는 <b>학습 보조</b>. 주행 판정은 연습용이며 공식 채점이 아님을 화면마다 표시</td></tr>
+  </table>
+  <div class="foot"><span>전진만할게요 · 프로젝트 기술서</span><span>3</span></div>
+</section>
+
+<!-- 4 배경·문제 -->
+<section class="slide pad">
+  <div class="eyebrow">01 서비스 개요 · 기획 배경과 문제 정의</div>
+  <div class="h2">틀린 이유와 주행 실수가 따로 흩어져, 무엇을 다시 연습할지 알기 어렵습니다</div>
+  <div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:34px">
+    <div class="card"><div class="big">70<small>/ 60점</small></div><p>학과시험 합격 기준<br>1종 보통 70점 · 2종 보통 60점 (객관식 40문항)</p></div>
+    <div class="card"><div class="big">57<small>항목</small></div><p>도로주행시험 평가 항목<br>감점 46 · 실격 11 (시행규칙 별표26)</p></div>
+    <div class="card"><div class="big">11<small>실격</small></div><p>신호위반·중앙선 침범·보호구역 속도 등<br>한 번에 불합격이 되는 항목</p></div>
+  </div>
+  <table class="t" style="margin-top:28px">
+    <tr><th style="width:200px">구분</th><th>내용</th></tr>
+    <tr><td>현황</td><td>필기는 문제 풀이 앱으로, 주행은 학원 실차 교육으로 따로 준비합니다. 기록이 서로 연결되지 않습니다.</td></tr>
+    <tr><td>원인</td><td>정답만 알려 주고 <b>근거 조문</b>은 보여 주지 않음 · 실차 연습은 시간·비용 때문에 <b>반복 횟수가 제한</b>됨 · 채점기준(감점/실격)을 직접 겪기 어려움</td></tr>
+    <tr><td>문제 1</td><td>필기에서 <b>왜 틀렸는지</b> 모른 채 같은 주제를 반복해서 틀린다</td></tr>
+    <tr><td>문제 2</td><td>신호·보호구역·속도 같은 <b>실격 사유를 실제 주행 전에 체감할 기회</b>가 부족하다</td></tr>
+    <tr><td>문제 3</td><td>필기 약점과 주행 실수를 <b>함께 보고 다음 연습을 정할 방법</b>이 없다</td></tr>
+  </table>
+  <div class="foot"><span>수치 출처: 도로교통법 시행규칙 [별표 26](2026-02-24 개정, 2026-08-01 시행) · 도로교통공단 안전운전 통합민원 시험 안내(조회 2026-09-15)</span><span>4</span></div>
+</section>
+
+<!-- 5 핵심 가치 -->
+<section class="slide pad">
+  <div class="eyebrow">01 서비스 개요 · 핵심 가치와 주요 기능</div>
+  <div class="h2">핵심 가치별로 해결하는 문제와 기능</div>
+  <table class="t" style="margin-top:34px">
+    <tr><th style="width:300px">핵심 가치</th><th style="width:150px">해결 문제</th><th>주요 기능</th></tr>
+    <tr><td>근거로 이해하는 오답</td><td>문제 1</td><td>제출 후에만 정답 공개 · 검수 해설 + <b>조문 근거</b> · AI 오답 코칭(정답은 데이터가 고정, AI는 설명만, 인용 조문 서버 검증)</td></tr>
+    <tr><td>실격 사유를 미리 겪는 주행</td><td>문제 2</td><td>기본조작 연습장 · 도심 도로주행 A코스(신호·어린이보호구역·횡단보도) · 별표26 항목에 연결된 <b>연습 판정</b> · 사건을 끊지 않고 누적</td></tr>
+    <tr><td>믿을 수 있는 기록</td><td>문제 2·3</td><td>브라우저 입력 기록을 <b>서버가 같은 엔진으로 재생해 사건 확정</b> · 일치/불일치 표시 · 과거 결과 덮어쓰지 않음</td></tr>
+    <tr><td>하나로 모은 다음 연습</td><td>문제 3</td><td>필기 주제별 정답률 + 주행 사건 빈도를 서버가 계산 → <b>AI 통합 리포트</b>(수치·근거 ID 서버 검증, 실패 시 규칙 기반 요약)</td></tr>
+    <tr><td>있는 장비로 시작</td><td>문제 2</td><td>키보드(W/S 전진·후진, A/D 조향)가 기본 · 선택으로 <b>MPU-6050 센서 핸들</b>(roll 좌우 조향 + ↑/↓ 전진·후진)</td></tr>
+  </table>
+  <div class="foot"><span>전진만할게요 · 프로젝트 기술서</span><span>5</span></div>
+</section>
+
+<!-- 6 범위 -->
+<section class="slide pad">
+  <div class="eyebrow">01 서비스 개요 · 범위</div>
+  <div class="h2">학습자 한 명이 혼자 쓰는 흐름만 범위에 넣었습니다</div>
+  <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:34px">
+    <div class="card" style="border-top:6px solid var(--green)">
+      <h4>포함</h4>
+      <p>회원가입 · 로그인 · 로그아웃 (세션 쿠키 · CSRF)<br>
+      대시보드 · 면허 취득 절차 안내<br>
+      필기: 주제·문항 수 선택 → 풀이(답안 즉시 저장) → 채점 → 오답 해설 → AI 코칭<br>
+      주행: 코스 선택 → 키보드 확인 / 센서 정렬 → 3D 주행 → 서버 재생 검증 결과<br>
+      AI 통합 학습 리포트 · 별표26 채점기준 지원 범위 표시</p>
+    </div>
+    <div class="card" style="border-top:6px solid var(--muted)">
+      <h4>제외 (범위 밖)</h4>
+      <p>공식 문제은행 문항과 실전 모의고사 — 이용 조건·정답 검수 전이라 <b>비활성</b><br>
+      공식 채점과 같은 자동 채점(A) — 검증 전이라 <b>0개 활성</b><br>
+      관리자 화면 · 문항 편집 · 결제 · 학원 연동<br>
+      비밀번호 찾기 · 소셜 로그인<br>
+      거울·방향지시등·시선 등 <b>측정하지 않는 행동의 평가</b></p>
+    </div>
+  </div>
+  <div class="point" style="margin-top:28px"><b>범위를 줄인 이유</b> — 확인되지 않은 공식 데이터·채점 규칙을 활성화하면 학습자에게 잘못된 기준을 줄 수 있어, 확인된 부분만 켜고 나머지는 “안내만(C)”으로 표시합니다.</div>
+  <div class="foot"><span>전진만할게요 · 프로젝트 기술서</span><span>6</span></div>
+</section>
+
+<!-- 7 액터 -->
+<section class="slide pad">
+  <div class="eyebrow">02 시스템 액터 정의</div>
+  <div class="h2">사용자 2종과 외부 시스템 2종</div>
+  <table class="t" style="margin-top:34px">
+    <tr><th style="width:230px">액터</th><th style="width:150px">구분</th><th style="width:500px">주요 역할 / 행동</th><th>상세 설명</th></tr>
+    <tr><td>학습자</td><td>사용자</td><td>회원가입·로그인 · 필기 연습·오답 확인 · 주행 연습 · AI 해설·리포트 요청</td><td>본인 기록만 조회·변경합니다. 면허 종별(1종/2종 보통)에 맞는 문항만 출제됩니다.</td></tr>
+    <tr><td>방문자</td><td>사용자(비로그인)</td><td>서비스 소개·면허 취득 절차 안내 보기 · 가입·로그인</td><td>공식 출처(법제처·도로교통공단)의 버전·조회일과 함께 절차를 봅니다.</td></tr>
+    <tr><td>LLM 서비스</td><td>외부 시스템</td><td>오답 설명 생성 · 통합 리포트 서술 생성</td><td>서버가 만든 입력(정답·조문 근거 / 통계)만 받습니다. 응답의 인용 ID·수치를 서버가 검증하고, 실패하면 규칙 기반 요약으로 대체합니다.</td></tr>
+    <tr><td>센서 핸들<br><span style="font-weight:600;font-size:17px">Arduino UNO + MPU-6050</span></td><td>외부 장치</td><td>roll 기울기로 좌/중앙/우 조향 입력 제공 (약 50Hz)</td><td>브라우저 Web Serial로 직접 연결되어 <b>서버 API가 없습니다</b>. 정렬 결과(보정값)만 주행 세션에 저장됩니다.</td></tr>
+  </table>
+  <div class="foot"><span>전진만할게요 · 프로젝트 기술서</span><span>7</span></div>
+</section>
+
+<!-- 8 기능 요구사항 -->
+<section class="slide pad" style="padding-top:48px">
+  <div class="eyebrow">03 기능 요구사항 · 액터별 기능 18개</div>
+  <div class="h2" style="font-size:40px">기능마다 화면과 API를 연결했습니다</div>
+  <table class="t xs" style="margin-top:18px">
+    <tr><th style="width:90px">ID</th><th style="width:230px">기능</th><th>설명</th><th style="width:150px">화면</th><th style="width:560px">API</th></tr>
+    <tr><td>FR-V01</td><td>면허 절차 안내</td><td>7단계 절차와 공식 출처·버전·조회일</td><td>S-01</td><td><span class="m get">GET</span> /guide</td></tr>
+    <tr><td>FR-V02</td><td>회원가입</td><td>이메일·비밀번호(영문+숫자 8자↑)·닉네임·면허 종별</td><td>S-02</td><td><span class="m get">GET</span> /auth/csrf · <span class="m post">POST</span> /auth/signup</td></tr>
+    <tr><td>FR-L01</td><td>로그인·로그아웃</td><td>HttpOnly 세션 쿠키, 1분 5회 실패 시 잠시 차단</td><td>S-03 · 공통</td><td><span class="m post">POST</span> /auth/login · /auth/logout · <span class="m get">GET</span> /me</td></tr>
+    <tr><td>FR-L02</td><td>대시보드</td><td>필기·주행 누적, 최근 기록, 이어 풀기, 최근 리포트</td><td>S-04</td><td><span class="m get">GET</span> /dashboard</td></tr>
+    <tr><td>FR-L03</td><td>필기 연습 설정</td><td>주제(복수)·문항 수 선택, 모의고사 비활성 사유 표시</td><td>S-05</td><td><span class="m get">GET</span> /written/catalog · <span class="m get">GET</span> /written/attempts</td></tr>
+    <tr><td>FR-L04</td><td>필기 시작</td><td>검수 문항 무작위 출제, 재시도 중복 방지</td><td>S-05 → S-06</td><td><span class="m post">POST</span> /written/attempts</td></tr>
+    <tr><td>FR-L05</td><td>답안 저장·이어 풀기</td><td>보기 선택 즉시 저장, 새로고침 후 복원, 정답 비공개</td><td>S-06</td><td><span class="m get">GET</span> /written/attempts/{id} · <span class="m put">PUT</span> …/answers/{questionId}</td></tr>
+    <tr><td>FR-L06</td><td>제출·채점</td><td>서버가 검수 정답으로 채점, 주제별 결과</td><td>S-06 → S-07</td><td><span class="m post">POST</span> …/submit · <span class="m get">GET</span> …/result</td></tr>
+    <tr><td>FR-L07</td><td>오답 해설</td><td>내 선택·정답·검수 해설·조문 근거, 이전/다음 문항</td><td>S-08</td><td><span class="m get">GET</span> /written/answers/{id}</td></tr>
+    <tr><td>FR-L08</td><td>AI 오답 코칭</td><td>근거 조문만으로 설명, 인용 검증, 실패 시 검수 해설 유지</td><td>S-08</td><td><span class="m post">POST</span> /ai/jobs (EXPLANATION) · <span class="m get">GET</span> /ai/jobs/{id}</td></tr>
+    <tr><td>FR-L09</td><td>코스·채점기준 보기</td><td>기본조작/도로 코스, 별표26 57항목 A/B/C 지원 범위</td><td>S-09</td><td><span class="m get">GET</span> /scenarios · <span class="m get">GET</span> /scoring-rules</td></tr>
+    <tr><td>FR-L10</td><td>키보드 입력 확인</td><td>A·D·W·S 한 번씩 확인 후 READY, R 초기화</td><td>S-10</td><td><span class="m get">GET</span> /scenarios/{id}</td></tr>
+    <tr><td>FR-L11</td><td>센서 연결·정렬</td><td>중앙 3초 → 좌 → 중앙 → 우 → 중앙 → READY, 반전·민감도</td><td>S-10</td><td>Web Serial (서버 API 없음)</td></tr>
+    <tr><td>FR-L12</td><td>주행 시작</td><td>입력 방식·보정값 저장, 이전 진행 세션 대체</td><td>S-10 → S-11</td><td><span class="m post">POST</span> /training/sessions</td></tr>
+    <tr><td>FR-L13</td><td>3D 주행·일시정지·중단</td><td>사건 누적 표시, Esc 일시정지, R 재정렬, 센서 단절 시 정지</td><td>S-11</td><td><span class="m post">POST</span> /training/sessions/{id}/abort</td></tr>
+    <tr><td>FR-L14</td><td>주행 종료·서버 재생 검증</td><td>입력 기록 재생으로 사건 확정, 일치/불일치 기록</td><td>S-11 → S-12</td><td><span class="m post">POST</span> /training/sessions/{id}/complete</td></tr>
+    <tr><td>FR-L15</td><td>주행 결과</td><td>상태·참고 감점·사건 타임라인·경로 재현·미측정 항목</td><td>S-12</td><td><span class="m get">GET</span> /training/sessions/{id} · <span class="m get">GET</span> /training/sessions</td></tr>
+    <tr><td>FR-L16</td><td>AI 통합 리포트</td><td>주제별 정답률·사건 빈도, 집중 영역·다음 연습 링크</td><td>S-13</td><td><span class="m post">POST</span> /ai/jobs (REPORT) · <span class="m get">GET</span> /ai/jobs</td></tr>
+  </table>
+  <div class="foot"><span>경로는 서버 기본 경로 /api/v1 기준 · 방문자 FR-V · 학습자 FR-L</span><span>8</span></div>
+</section>
+
+<!-- 9 전체 흐름 -->
+<section class="slide pad">
+  <div class="eyebrow">04 UI 흐름도 · 전체 흐름 · 화면 13개</div>
+  <div class="h2">방문 → 필기 → 주행 → 리포트가 대시보드를 중심으로 이어집니다</div>
+  <div style="margin-top:44px;display:grid;gap:34px">
+    <div class="flow"><div class="lane-label">방문자</div>
+      <div class="node">S-01 서비스 소개<small>/</small></div><div class="arrow">→</div>
+      <div class="node">S-02 회원가입<small>/signup</small></div><div class="arrow">·</div>
+      <div class="node">S-03 로그인<small>/login</small></div><div class="arrow">→</div>
+      <div class="node key">S-04 대시보드<small>/app</small></div>
+    </div>
+    <div class="flow"><div class="lane-label">필기</div>
+      <div class="node">S-05 필기 설정<small>/written</small></div><div class="arrow">→</div>
+      <div class="node key">S-06 문제 풀이<small>/written/attempts/:id</small></div><div class="arrow">→</div>
+      <div class="node">S-07 필기 결과<small>…/:id/result</small></div><div class="arrow">→</div>
+      <div class="node ai">S-08 오답 해설 · AI<small>/written/answers/:id</small></div>
+    </div>
+    <div class="flow"><div class="lane-label">주행</div>
+      <div class="node">S-09 코스 선택<small>/drive</small></div><div class="arrow">→</div>
+      <div class="node">S-10 출발 전 점검<small>/drive/setup/:scenarioId</small></div><div class="arrow">→</div>
+      <div class="node key">S-11 3D 주행<small>/drive/session/:id</small></div><div class="arrow">→</div>
+      <div class="node">S-12 주행 결과<small>/drive/result/:id</small></div>
+    </div>
+    <div class="flow"><div class="lane-label">분석</div>
+      <div class="node ai">S-13 AI 통합 리포트<small>/report</small></div><div class="arrow">→</div>
+      <div style="font-size:20px;color:var(--body)">다음 연습 카드 → <b>S-05</b>(약한 주제) 또는 <b>S-10</b>(해당 코스)로 이동</div>
+    </div>
+  </div>
+  <div class="grid" style="grid-template-columns:repeat(3,1fr);margin-top:44px;gap:20px">
+    <div class="point"><b>상단 바</b>에서 대시보드·필기·주행·AI 리포트로 언제든 이동, 센서 연결 상태 표시</div>
+    <div class="point"><b>보호 화면</b>은 로그인하지 않았거나 세션이 만료되면(401) 로그인으로 보내고, 로그인 후 원래 화면으로 복귀</div>
+    <div class="point"><b>R</b>은 점검·주행 중 즉시 정지하고 S-10 정렬부터 다시, <b>Esc</b>는 일시정지</div>
+  </div>
+  <div class="foot"><span>초록 테두리: 핵심 화면 · 주황 테두리: AI 연동 화면</span><span>9</span></div>
+</section>
+
+<!-- 10 S-01~03 -->
+<section class="slide pad">
+  <div class="eyebrow">04 UI 흐름도 · 방문자 · S-01 소개 · S-02 회원가입 · S-03 로그인</div>
+  <div class="h2" style="font-size:40px">가입 즉시 로그인되고, 오류가 나도 입력값을 유지합니다</div>
+  <div class="ui" style="grid-template-columns:560px 560px 1fr">
+    <div><div class="shot crop" style="height:350px"><img src="../자료/캡처/C-01_서비스소개.png"></div><div class="cap">C-01 서비스 소개 (S-01)</div>
+         <div class="shot crop" style="height:350px;margin-top:14px"><img src="../자료/캡처/C-03_로그인_오류.png"></div><div class="cap">C-03 로그인 실패 (S-03)</div></div>
+    <div><div class="shot crop" style="height:350px"><img src="../자료/캡처/C-02_회원가입_비밀번호규칙.png"></div><div class="cap">C-02 회원가입 — 비밀번호 규칙 미충족 (S-02)</div>
+         <div class="shot crop" style="height:350px;margin-top:14px"><img src="../자료/캡처/C-04_대시보드_첫방문.png"></div><div class="cap">C-04 가입 직후 대시보드 (S-04)</div></div>
+    <ul class="notes">
+      <li><span class="n">1</span><div><b>시작하기 · 로그인</b> 버튼, 학습 흐름 소개<span class="go">→ S-02 / S-03</span></div></li>
+      <li><span class="n">2</span><div><b>회원가입</b> 이메일 · 비밀번호 · 닉네임 · 1종/2종 보통. 규칙 미충족이면 버튼 비활성<span class="api">GET /auth/csrf → POST /auth/signup → 201 User</span><span class="ex">400 VALIDATION_ERROR 필드별 사유 · 409 EMAIL_TAKEN</span></div></li>
+      <li><span class="n">3</span><div><b>로그인</b> 이메일 · 비밀번호<span class="api">POST /auth/login → 200 User (Set-Cookie)</span><span class="ex">401 INVALID_CREDENTIALS · 429 TOO_MANY_ATTEMPTS</span></div></li>
+      <li><span class="n">4</span><div><b>첫 방문 대시보드</b> 기록이 없으면 “필기 10문항 시작” 안내<span class="api">GET /me · GET /dashboard</span><span class="go">→ S-05 / S-09</span></div></li>
+    </ul>
+  </div>
+  <div class="foot"><span class="legend"><span class="b">파랑: 호출 API</span><span class="g">초록: 화면 이동</span><span class="r">빨강: 예외 응답</span></span><span>10</span></div>
+</section>
+
+<!-- 11 S-04 -->
+<section class="slide pad">
+  <div class="eyebrow">04 UI 흐름도 · 학습자 · S-04 대시보드</div>
+  <div class="h2" style="font-size:40px">필기·주행·AI 리포트 상태를 한 화면에서 확인합니다</div>
+  <div class="ui" style="grid-template-columns:1000px 1fr">
+    <div><div class="shot crop" style="height:720px"><img src="../자료/캡처/C-22_대시보드_기록.png"></div><div class="cap">C-22 기록이 쌓인 대시보드</div></div>
+    <ul class="notes">
+      <li><span class="n">1</span><div><b>요약 지표</b> 필기 누적 정답률 · 제출 수 · 주행 횟수 · 센서 연결 상태<span class="api">GET /dashboard → written.submitted_count · correct_total · answer_total, driving.session_count</span></div></li>
+      <li><span class="n">2</span><div><b>이어 풀기</b> 제출 전 시도가 있으면 표시<span class="api">written.in_progress {id, question_count, started_at}</span><span class="go">→ S-06</span></div></li>
+      <li><span class="n">3</span><div><b>최근 필기 연습</b> 점수/문항 수 · 제출 시각<span class="api">written.recent[] (최대 6)</span><span class="go">→ S-07</span></div></li>
+      <li><span class="n">4</span><div><b>최근 주행</b> 코스 · 상태 배지(완주/실격 사유 포함/미완료) · 사건 수<span class="api">driving.recent[] {status, reference_deduction, event_count}</span><span class="go">→ S-12</span></div></li>
+      <li><span class="n">5</span><div><b>AI 통합 리포트</b> 최근 생성 시각<span class="api">latest_report {id, status, created_at}</span><span class="go">→ S-13</span></div></li>
+    </ul>
+  </div>
+  <div class="foot"><span class="legend"><span class="b">파랑: 호출 API·응답 필드</span><span class="g">초록: 화면 이동</span></span><span>11</span></div>
+</section>
+
+<!-- 12 S-05/06 -->
+<section class="slide pad">
+  <div class="eyebrow">04 UI 흐름도 · 필기 · S-05 필기 설정 · S-06 문제 풀이</div>
+  <div class="h2" style="font-size:40px">보기를 누를 때마다 서버에 저장하고, 제출 전에는 정답을 보내지 않습니다</div>
+  <div class="ui" style="grid-template-columns:640px 640px 1fr">
+    <div><div class="shot crop" style="height:470px"><img src="../자료/캡처/C-05_필기_설정.png"></div><div class="cap">C-05 필기 설정 (S-05)</div></div>
+    <div><div class="shot crop" style="height:470px"><img src="../자료/캡처/C-06_필기_문제풀이.png"></div><div class="cap">C-06 문제 풀이 (S-06)</div></div>
+    <ul class="notes">
+      <li><span class="n">1</span><div><b>주제 칩</b>(문항 수 표시) · <b>문항 수</b> 5/10/20/40<span class="api">GET /written/catalog → categories[] {id, name, question_count}</span></div></li>
+      <li><span class="n">2</span><div><b>모드</b> 주제별 연습만 활성, 실전 모의고사는 비활성 사유 표시<span class="api">modes[] {available, reason}</span></div></li>
+      <li><span class="n">3</span><div><b>연습 시작</b><span class="api">POST /written/attempts + Idempotency-Key → 201</span><span class="ex">409 NO_REVIEWED_QUESTIONS</span></div></li>
+      <li><span class="n">4</span><div><b>보기 선택</b> 즉시 저장 · “서버에 저장됨” 표시, 실패 시 다시 저장<span class="api">PUT /written/attempts/{id}/answers/{questionId}</span><span class="ex">409 ATTEMPT_ALREADY_SUBMITTED → 결과로</span></div></li>
+      <li><span class="n">5</span><div><b>진행 현황</b> 답한 문항 · 경과 시간 · 번호로 이동<span class="api">GET /written/attempts/{id} → selected_option_ids</span></div></li>
+    </ul>
+  </div>
+  <div class="foot"><span class="legend"><span class="b">파랑: 호출 API</span><span class="g">초록: 화면 이동</span><span class="r">빨강: 예외 응답</span></span><span>12</span></div>
+</section>
+
+<!-- 13 S-07 -->
+<section class="slide pad">
+  <div class="eyebrow">04 UI 흐름도 · 필기 · 제출 확인 → S-07 필기 결과</div>
+  <div class="h2" style="font-size:40px">서버가 채점하고, 주제별로 어디서 틀렸는지 보여 줍니다</div>
+  <div class="ui" style="grid-template-columns:600px 700px 1fr">
+    <div><div class="shot crop" style="height:400px"><img src="../자료/캡처/C-07_필기_제출확인.png"></div><div class="cap">C-07 제출 확인 모달</div></div>
+    <div><div class="shot crop" style="height:720px"><img src="../자료/캡처/C-08_필기_결과.png"></div><div class="cap">C-08 필기 결과 (S-07)</div></div>
+    <ul class="notes">
+      <li><span class="n">1</span><div><b>제출 확인</b> 답하지 않은 문항은 오답 처리 안내 · 계속 풀기 / 제출하고 채점<span class="api">POST /written/attempts/{id}/submit → 200 WrittenResult</span><span class="ex">다시 보내도 같은 결과 (재시도 안전)</span></div></li>
+      <li><span class="n">2</span><div><b>점수·정답 수</b> 연습 모드는 합격 판정 없음을 표시<span class="api">score · max_score · outcome = PRACTICE_NO_PASS_JUDGEMENT</span></div></li>
+      <li><span class="n">3</span><div><b>문항별 결과</b> 정답/오답 · 획득 점수<span class="api">items[] {answer_id, is_correct, earned_points}</span><span class="go">→ S-08</span></div></li>
+      <li><span class="n">4</span><div><b>주제별 정답</b> 막대<span class="api">by_category[] {name, correct, total}</span></div></li>
+      <li><span class="n">5</span><div><b>AI 통합 리포트에 반영하기</b><span class="go">→ S-13</span></div></li>
+    </ul>
+  </div>
+  <div class="foot"><span class="legend"><span class="b">파랑: 호출 API</span><span class="g">초록: 화면 이동</span><span class="r">빨강: 예외·재시도</span></span><span>13</span></div>
+</section>
+
+<!-- 14 S-08 -->
+<section class="slide pad">
+  <div class="eyebrow">04 UI 흐름도 · 필기 · S-08 오답 해설 · AI 오답 코칭</div>
+  <div class="h2" style="font-size:40px">정답은 데이터가 정하고, AI는 조문 근거 안에서만 설명합니다</div>
+  <div class="ui" style="grid-template-columns:1040px 1fr">
+    <div><div class="shot crop" style="height:700px"><img src="../자료/캡처/C-10_AI오답해설.png"></div><div class="cap">C-10 오답 해설 + AI 오답 코칭 (실제 LLM 응답)</div></div>
+    <ul class="notes">
+      <li><span class="n">1</span><div><b>내 선택 / 정답</b> 표시 · 주제 · 자체 제작 연습 문항 표시<span class="api">GET /written/answers/{id} → selected_option_ids · correct_option_ids</span><span class="ex">409 ATTEMPT_NOT_SUBMITTED (제출 전 비공개)</span></div></li>
+      <li><span class="n">2</span><div><b>검수 해설 · 근거 조문</b> 출처와 조회일<span class="api">question.explanation · evidence {locator, content, source_url}</span></div></li>
+      <li><span class="n">3</span><div><b>AI 해설 요청</b> → 작성 중 표시 → 결과<span class="api">POST /ai/jobs {kind: EXPLANATION, answer_id} → 202<br>GET /ai/jobs/{id} → result {summary, why_selected_wrong, key_rule, memory_tip}</span></div></li>
+      <li><span class="n">4</span><div><b>인용 · 모델 버전</b> 입력에 없는 조문을 인용하면 서버가 거부<span class="api">citations[] · model_version · prompt_version</span><span class="ex">FAILED 시 검수 해설은 그대로, “다시 요청”</span></div></li>
+      <li><span class="n">5</span><div><b>이전 / 다음 문항 · 결과로</b><span class="api">prev_answer_id · next_answer_id</span></div></li>
+    </ul>
+  </div>
+  <div class="foot"><span class="legend"><span class="b">파랑: 호출 API</span><span class="r">빨강: 예외</span></span><span>14</span></div>
+</section>
+
+<!-- 15 S-09/10 -->
+<section class="slide pad">
+  <div class="eyebrow">04 UI 흐름도 · 주행 · S-09 코스 선택 · S-10 출발 전 점검</div>
+  <div class="h2" style="font-size:40px">READY가 되기 전에는 출발할 수 없습니다</div>
+  <div class="ui" style="grid-template-columns:560px 560px 1fr">
+    <div><div class="shot crop" style="height:350px"><img src="../자료/캡처/C-11_주행_코스선택.png"></div><div class="cap">C-11 코스 선택 · 채점기준 지원 범위 (S-09)</div>
+         <div class="shot crop" style="height:350px;margin-top:14px"><img src="../자료/캡처/C-12_센서_연결안내.png"></div><div class="cap">C-12 센서 모드 — 연결 전 (S-10)</div></div>
+    <div><div class="shot crop" style="height:350px"><img src="../자료/캡처/C-13_키보드_입력확인_전.png"></div><div class="cap">C-13 키보드 모드 — CENTER / STOP</div>
+         <div class="shot crop" style="height:350px;margin-top:14px"><img src="../자료/캡처/C-14_키보드_READY.png"></div><div class="cap">C-14 네 키 확인 → READY</div></div>
+    <ul class="notes">
+      <li><span class="n">1</span><div><b>코스 카드</b> 길이 · 제한 시간 · 신호/보호구역/횡단보도 수<span class="api">GET /scenarios → items[] {length_m, time_limit_s, features}</span></div></li>
+      <li><span class="n">2</span><div><b>별표26 지원 범위 표</b> B 연습 표시 · C 안내만 · A 0개<span class="api">GET /scoring-rules → support · method · limitations</span></div></li>
+      <li><span class="n">3</span><div><b>센서 정렬</b> 연결 → 중앙 3초 → 좌 → 중앙 → 우 → 중앙 → READY · 반전 · 민감도<span class="api">Web Serial (서버 API 없음)</span><span class="ex">미지원 브라우저·포트 점유 → 키보드로 진행</span></div></li>
+      <li><span class="n">4</span><div><b>키보드 확인</b> A·D·W·S 한 번씩, R은 처음부터<span class="api">GET /scenarios/{id} → definition · practice_rules</span></div></li>
+      <li><span class="n">5</span><div><b>주행 시작</b> (Enter)<span class="api">POST /training/sessions {scenario_id, input_mode, calibration}</span><span class="ex">400 CALIBRATION_MISMATCH · INVALID_HYSTERESIS</span><span class="go">→ S-11</span></div></li>
+    </ul>
+  </div>
+  <div class="foot"><span class="legend"><span class="b">파랑: 호출 API</span><span class="g">초록: 화면 이동</span><span class="r">빨강: 예외·대체 경로</span></span><span>15</span></div>
+</section>
+
+<!-- 16 S-11 -->
+<section class="slide pad">
+  <div class="eyebrow">04 UI 흐름도 · 주행 · 핵심 기능 · S-11 3D 주행</div>
+  <div class="h2" style="font-size:40px">실격 해당 사건이 나도 주행을 끊지 않고 쌓아서 끝까지 연습합니다</div>
+  <div class="ui" style="grid-template-columns:1000px 1fr">
+    <div><div class="shot" style="height:625px"><img src="../자료/캡처/C-16_도로주행_진행.png"></div><div class="cap">C-16 도심 도로주행 A코스 — 제한속도 초과 사건 발생 (키보드 모드)</div></div>
+    <ul class="notes">
+      <li><span class="n">1</span><div><b>속도 · 제한속도</b> 표지와 <b>신호</b> 상태, 진행률 · 다음 과제</div></li>
+      <li><span class="n">2</span><div><b>사건 알림 · 사건 기록</b> 시각 · 속도 · 지점 (실격 해당은 빨강)</div></li>
+      <li><span class="n">3</span><div><b>입력 표시</b> LEFT/CENTER/RIGHT · 후진/정지/전진. 반대 키 동시 입력·무입력은 정지/중앙</div></li>
+      <li><span class="n">4</span><div><b>일시정지(Esc) · R 즉시 정지·재정렬 · 주행 종료</b><span class="api">R / 센서 단절 → POST /training/sessions/{id}/abort {reason}</span></div></li>
+      <li><span class="n">5</span><div><b>종료 시</b> 30Hz 입력 변화 기록 + 브라우저 사건 전송<span class="api">POST /training/sessions/{id}/complete {total_ticks, inputs, client_events, end_reason}</span><span class="ex">저장 실패 → 기록 보존 후 “다시 저장”</span><span class="go">→ S-12</span></div></li>
+    </ul>
+  </div>
+  <div class="foot"><span class="legend"><span class="b">파랑: 호출 API</span><span class="g">초록: 화면 이동</span><span class="r">빨강: 예외</span></span><span>16</span></div>
+</section>
+
+<!-- 17 S-12 -->
+<section class="slide pad">
+  <div class="eyebrow">04 UI 흐름도 · 주행 · S-12 주행 결과</div>
+  <div class="h2" style="font-size:40px">서버가 입력 기록을 다시 재생해 확정한 사건만 결과로 남깁니다</div>
+  <div class="ui" style="grid-template-columns:1000px 1fr">
+    <div><div class="shot crop" style="height:690px"><img src="../자료/캡처/C-18_주행_결과.png"></div><div class="cap">C-18 주행 결과 — 서버 재생 검증 일치, 경로·사건 위치 재현</div></div>
+    <ul class="notes">
+      <li><span class="n">1</span><div><b>결과 상태</b> 완주 / 완주·실격 사유 포함 / 미완료<span class="api">GET /training/sessions/{id} → status</span></div></li>
+      <li><span class="n">2</span><div><b>서버 재생 검증</b> 일치 또는 “불일치 → 서버 기준”<span class="api">verification_status (VERIFIED · MISMATCH)</span></div></li>
+      <li><span class="n">3</span><div><b>주행 요약 · 참고 감점 합계</b> 공식 채점 아님 표시<span class="api">duration_s · distance_m · max_speed_kmh · reference_deduction · official_scoring=false</span></div></li>
+      <li><span class="n">4</span><div><b>경로 재현</b> 저장된 입력으로 브라우저가 다시 그림<span class="api">replay {inputs, total_ticks}</span></div></li>
+      <li><span class="n">5</span><div><b>사건 타임라인 · 별표26 항목 · 측정하지 않은 항목</b><span class="api">events[] {code, rule {code, kind, deduction_points}} · unmeasured[]</span><span class="go">→ 같은 코스 다시(S-10) · AI 리포트(S-13)</span></div></li>
+    </ul>
+  </div>
+  <div class="foot"><span class="legend"><span class="b">파랑: 호출 API·응답 필드</span><span class="g">초록: 화면 이동</span></span><span>17</span></div>
+</section>
+
+<!-- 18 S-13 -->
+<section class="slide pad">
+  <div class="eyebrow">04 UI 흐름도 · 분석 · S-13 AI 통합 리포트</div>
+  <div class="h2" style="font-size:40px">서버가 계산한 숫자만 AI에 전달하고, 응답의 수치·근거를 다시 검사합니다</div>
+  <div class="ui" style="grid-template-columns:900px 1fr">
+    <div><div class="shot crop" style="height:720px"><img src="../자료/캡처/C-21_AI리포트.png"></div><div class="cap">C-21 AI 통합 리포트 (실제 LLM 응답)</div></div>
+    <ul class="notes">
+      <li><span class="n">1</span><div><b>리포트 생성 / 최신 기록으로 다시 분석</b><span class="api">POST /ai/jobs {kind: REPORT} → 202 · GET /ai/jobs/{id}</span></div></li>
+      <li><span class="n">2</span><div><b>헤드라인 · 요약</b> 모델·프롬프트 버전 표시<span class="api">result.narrative {headline, summary} · model_version</span></div></li>
+      <li><span class="n">3</span><div><b>집중 영역</b> 근거 칩(필기 시도·주제·주행 사건)<span class="api">focus_areas[] {title, reason, evidence_ids} — evidence_ids ⊂ stats.evidence_ids</span></div></li>
+      <li><span class="n">4</span><div><b>바로 해 볼 다음 연습</b> 필기 주제 또는 코스로 이동<span class="api">next_steps[] {target: WRITTEN|DRIVE, ref}</span><span class="go">→ S-05 · S-10</span></div></li>
+      <li><span class="n">5</span><div><b>주제별 정답률 · 주행 사건 빈도 · 분석하지 않는 항목</b><span class="api">result.stats {written.categories, driving.event_counts, unmeasured}</span><span class="ex">AI 실패 → FALLBACK(규칙 기반 요약) · 기록 부족 → INSUFFICIENT_DATA</span></div></li>
+    </ul>
+  </div>
+  <div class="foot"><span class="legend"><span class="b">파랑: 호출 API·응답 필드</span><span class="g">초록: 화면 이동</span><span class="r">빨강: 대체 경로</span></span><span>18</span></div>
+</section>
+
+<!-- 19 예외 -->
+<section class="slide pad">
+  <div class="eyebrow">04 UI 흐름도 · 예외 · 오류 시나리오</div>
+  <div class="h2" style="font-size:40px">오류가 나도 입력과 기록은 보존하고, 다음 행동을 안내합니다</div>
+  <div class="ui" style="grid-template-columns:620px 1fr">
+    <div><div class="shot" style="height:388px"><img src="../자료/캡처/C-17_주행_일시정지.png"></div><div class="cap">C-17 주행 일시정지 (Esc · 창 포커스 상실)</div>
+         <div class="shot crop" style="height:300px;margin-top:14px"><img src="../자료/캡처/C-23_없는페이지.png"></div><div class="cap">C-23 없는 주소</div></div>
+    <table class="t s">
+      <tr><th style="width:260px">상황</th><th>화면 동작</th><th style="width:300px">서버</th></tr>
+      <tr><td>입력 형식 오류</td><td>필드별 사유 표시, 비밀번호 외 입력 유지</td><td>400 VALIDATION_ERROR</td></tr>
+      <tr><td>로그인 실패 · 시도 과다</td><td>“이메일 또는 비밀번호가 맞지 않습니다” / 1분 뒤 재시도 (C-03)</td><td>401 · 429</td></tr>
+      <tr><td>세션 만료</td><td>로그인 화면으로 이동 후 원래 화면 복귀</td><td>401 SESSION_EXPIRED</td></tr>
+      <tr><td>보안 토큰 불일치</td><td>새로고침 안내</td><td>403 CSRF_FAILED</td></tr>
+      <tr><td>남의 기록 · 없는 ID</td><td>“찾을 수 없습니다” (존재 여부 숨김)</td><td>404 *_NOT_FOUND</td></tr>
+      <tr><td>답안 저장 실패</td><td>선택 유지, “다시 저장” 버튼, 실패 문항이 있으면 제출 비활성</td><td>네트워크 · 5xx</td></tr>
+      <tr><td>제출 후 답안 수정 · 제출 전 결과</td><td>결과 화면 / 이어 풀기로 이동</td><td>409 ATTEMPT_*</td></tr>
+      <tr><td>생성 요청 재시도(타임아웃)</td><td>같은 Idempotency-Key로 재전송 → 중복 생성 없음</td><td>201 재사용 · 409 IDEMPOTENCY_CONFLICT</td></tr>
+      <tr><td>주행 중 창 포커스 상실 · Esc</td><td>즉시 정지·키 해제 → 계속 / R 처음부터 / 나가기(미완료 저장) (C-17)</td><td>—</td></tr>
+      <tr><td>센서 단절 · 무응답 4.5초</td><td>즉시 정지 → 재연결 후 새로 시작 / 키보드로 새로 시작</td><td>abort SENSOR_LOST</td></tr>
+      <tr><td>주행 저장 실패</td><td>기록을 브라우저에 보존, “다시 저장” / 기록 버리고 나가기</td><td>같은 입력 재전송 시 저장된 결과</td></tr>
+      <tr><td>AI 실패 · 근거 검증 실패</td><td>검수 해설 유지·다시 요청 / 규칙 기반 리포트</td><td>FAILED · FALLBACK</td></tr>
+    </table>
+  </div>
+  <div class="foot"><span>전진만할게요 · 프로젝트 기술서</span><span>19</span></div>
+</section>
+
+<!-- 20 ERD -->
+<section class="slide pad">
+  <div class="eyebrow">05 데이터 모델 설계 · ERD</div>
+  <div class="h2" style="font-size:40px">화면과 API가 쓰는 데이터를 20개 테이블로 설계했습니다</div>
+  <div class="ui" style="grid-template-columns:960px 1fr">
+    <div class="shot" style="height:800px;display:flex;align-items:center;justify-content:center;background:#fff"><img src="../자료/도구캡처/ERD_전체.png" style="width:auto;max-width:100%;max-height:100%"></div>
+    <div>
+      <div class="grid" style="grid-template-columns:repeat(2,1fr);gap:14px">
+        <div class="card" style="padding:16px 22px"><div class="big" style="font-size:48px">20<small>테이블</small></div></div>
+        <div class="card" style="padding:16px 22px"><div class="big" style="font-size:48px">27<small>FK 관계</small></div></div>
+        <div class="card" style="padding:16px 22px"><div class="big" style="font-size:48px">15<small>Enum</small></div></div>
+        <div class="card" style="padding:16px 22px"><div class="big" style="font-size:48px">4<small>M:N 연결</small></div></div>
+      </div>
+      <div style="display:grid;gap:12px;margin-top:18px">
+        <div class="point"><b>M:N 해소</b> 시도↔문항 <code>attempt_questions</code> · 답안↔보기 <code>answer_selections</code> · 코스↔채점규칙 <code>scenario_rules</code> · AI작업↔조문 <code>ai_citations</code></div>
+        <div class="point"><b>버전 보존</b> 문항·코스·출처는 <code>(code, version)</code> UNIQUE, 수정 대신 새 버전 추가 → 과거 결과 유지</div>
+        <div class="point"><b>상태 무결성</b> 제출 ⇔ 점수 NOT NULL, 센서 모드 ⇔ 보정값 NOT NULL, 해설 작업 ⇔ answer_id, 감점 ⇔ 점수 &gt; 0</div>
+        <div class="point"><b>보안·재시도</b> 비밀번호·세션 토큰은 해시만 저장, <code>idempotency_keys</code>로 같은 요청 재처리 방지</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>9반_P286_김진수_전진만할게요-DB.dbml · @dbml/core 파싱 오류 0 · 이미지는 DBML에서 로컬 렌더링(mermaid)</span><span>20</span></div>
+</section>
+
+<!-- 21 그룹 -->
+<section class="slide pad">
+  <div class="eyebrow">05 데이터 모델 설계 · 테이블 그룹</div>
+  <div class="h2" style="font-size:40px">사용자·인증 / 공식 근거 / 필기 / 주행 / AI</div>
+  <div class="ui" style="grid-template-columns:560px 620px 1fr">
+    <div class="shot" style="height:800px;display:flex;justify-content:center;background:#fff"><img src="../자료/도구캡처/ERD_그룹_written.png" style="width:auto;max-height:100%;max-width:100%"></div>
+    <div class="shot" style="height:800px;display:flex;justify-content:center;background:#fff"><img src="../자료/도구캡처/ERD_그룹_driving.png" style="width:auto;max-height:100%;max-width:100%"></div>
+    <table class="t s">
+      <tr><th>그룹</th><th>테이블과 역할</th></tr>
+      <tr><td>사용자·인증</td><td><b>users</b> 학습자 · <b>auth_sessions</b> 토큰 해시·만료·폐기 · <b>idempotency_keys</b> 재시도 응답</td></tr>
+      <tr><td>공식 근거</td><td><b>official_sources</b> 출처·버전·시행일·이용 조건 · <b>source_chunks</b> 조문 요약 · <b>guide_steps</b> 절차 · <b>categories</b> 필기 주제와 주행 사건 분류 공유</td></tr>
+      <tr><td>필기</td><td><b>questions</b>·<b>question_options</b> 검수 문항 · <b>written_attempts</b> → <b>attempt_questions</b> → <b>written_answers</b> → <b>answer_selections</b></td></tr>
+      <tr><td>주행</td><td><b>official_scoring_rules</b> 별표26 57항목(A/B/C) · <b>scenarios</b> 코스 정의 · <b>scenario_rules</b> · <b>training_sessions</b> 보정값·입력 기록 · <b>driving_events</b> 확정 사건</td></tr>
+      <tr><td>AI</td><td><b>ai_jobs</b> 입력 스냅샷·결과·모델/프롬프트 버전 · <b>ai_citations</b> 검증된 인용</td></tr>
+    </table>
+  </div>
+  <div class="foot"><span>왼쪽: 필기 그룹 · 가운데: 주행 그룹 (다른 그룹 테이블은 id만 표시)</span><span>21</span></div>
+</section>
+
+<!-- 22 대응표 -->
+<section class="slide pad" style="padding-top:48px">
+  <div class="eyebrow">05 데이터 모델 설계 · 화면 ↔ API ↔ DB</div>
+  <div class="h2" style="font-size:40px">화면에 보이는 데이터는 API 필드와 테이블 컬럼에 대응합니다</div>
+  <table class="t xs" style="margin-top:20px;font-size:16px">
+    <tr><th style="width:120px">화면</th><th style="width:420px">화면 데이터</th><th style="width:560px">API 필드</th><th>DB 컬럼</th></tr>
+    <tr><td>S-02·03</td><td>이메일 · 닉네임 · 면허 종별</td><td>User.email · nickname · license_type</td><td>users.email · nickname · license_type</td></tr>
+    <tr><td>S-04</td><td>필기 누적 정답 · 최근 주행 상태 · 최근 리포트</td><td>Dashboard.written.correct_total · driving.recent[].status · latest_report</td><td>written_attempts.correct_count · training_sessions.status · ai_jobs</td></tr>
+    <tr><td>S-05</td><td>주제 · 주제별 문항 수 · 모드</td><td>WrittenCatalog.categories[] · modes[]</td><td>categories · questions.review_status/license_scope 집계</td></tr>
+    <tr><td>S-06</td><td>문항 · 보기 · 배점 · 내 선택 · 진행 수</td><td>AttemptQuestion.prompt · options[] · points · selected_option_ids · answered_count</td><td>attempt_questions · questions · question_options · answer_selections</td></tr>
+    <tr><td>S-07</td><td>점수 · 정답 수 · 문항별 정오 · 주제별</td><td>WrittenResult.score · correct_count · items[].is_correct · by_category[]</td><td>written_attempts.score · written_answers.is_correct · earned_points</td></tr>
+    <tr><td>S-08</td><td>정답 · 검수 해설 · 근거 조문 · AI 설명·인용</td><td>AnswerReview.correct_option_ids · question.explanation · evidence · latest_ai_job</td><td>question_options.is_correct · questions.explanation · source_chunks · ai_jobs.result · ai_citations</td></tr>
+    <tr><td>S-09</td><td>코스 정보 · 채점기준 지원 범위</td><td>ScenarioItem.length_m · features · ScoringRule.support · limitations</td><td>scenarios.definition · official_scoring_rules.support · limitations</td></tr>
+    <tr><td>S-10</td><td>센서 중앙각 · 반전 · 진입/복귀 각 · 민감도</td><td>Calibration.center_deg · invert · enter_deg · exit_deg · smoothing_ms · dwell_ms</td><td>training_sessions.calibration_snapshot · input_mode</td></tr>
+    <tr><td>S-11</td><td>코스 지오메트리 · 연습 판정 항목 · 입력 기록</td><td>ScenarioDetail.definition · practice_rules[] · TrainingCompleteRequest.inputs</td><td>scenarios.definition · scenario_rules · training_sessions.input_log · input_hash</td></tr>
+    <tr><td>S-12</td><td>상태 · 검증 · 거리/최고속도 · 참고 감점 · 사건 · 경로</td><td>TrainingResult.status · verification_status · distance_m · reference_deduction · events[] · replay</td><td>training_sessions.* · driving_events.event_code · rule_id · evidence</td></tr>
+    <tr><td>S-13</td><td>헤드라인 · 집중 영역 · 다음 연습 · 정답률 · 사건 빈도</td><td>AiJob.result.narrative · stats.written.categories · stats.driving.event_counts</td><td>ai_jobs.result · evidence_snapshot · model_version · prompt_version</td></tr>
+  </table>
+  <div class="foot"><span>전체 필드는 API.yml components.schemas 와 DB.dbml 컬럼 Note 참조</span><span>22</span></div>
+</section>
+
+<!-- 23 API -->
+<section class="slide pad">
+  <div class="eyebrow">06 API 명세 정의 · OpenAPI 3.0.3</div>
+  <div class="h2" style="font-size:40px">화면에 필요한 REST API 24경로 27동작</div>
+  <div class="ui" style="grid-template-columns:760px 1fr">
+    <div class="shot" style="height:800px"><img src="../자료/도구캡처/Swagger_API목록.png" style="object-fit:cover;object-position:top;height:100%"></div>
+    <div style="display:grid;gap:14px">
+      <div class="point"><b>1. 태그 5개</b> auth · home · written · driving · ai — 조회 GET · 생성·동작 POST · 답안 덮어쓰기 PUT</div>
+      <div class="point"><b>2. 공통 스키마 재사용</b> <code>$ref</code> 스키마 54개 · 공통 응답(BadRequest·Unauthorized·Forbidden·NotFound·IdempotencyConflict) · 공통 파라미터(X-CSRF-Token·Idempotency-Key·경로 ID)</div>
+      <div class="point"><b>3. 예외</b> 400 · 401 · 403 · 404 · 409 · 413 · 429, 모두 <code>Error {code, message, details}</code> 형식과 코드별 예시</div>
+      <div class="point"><b>4. 조건부 요청</b> 센서 모드만 <code>calibration</code> 필수 · 해설 작업만 <code>answer_id</code> 필수 · 비밀번호 <code>writeOnly</code> · 제한값(min/max/pattern/maxItems)</div>
+      <div class="point"><b>5. 인증은 설명으로</b> 평가 제외 항목인 Security Schemes 대신 description에 세션 쿠키·CSRF·본인 데이터 규칙 명시</div>
+      <div class="point"><b>6. 실제 응답과 대조</b> 서버를 임시 DB로 실행해 <b>27개 동작 전부, 53건 응답</b>을 명세 스키마(선언 안 된 필드 금지)로 검증 → <b>불일치 0</b></div>
+      <div class="point"><b>7. 센서는 서버 API 없음</b> Web Serial 브라우저 직통, 보정값만 <code>POST /training/sessions</code>에 포함</div>
+    </div>
+  </div>
+  <div class="foot"><span>Swagger UI(swagger-ui-dist 5, 로컬) 렌더 오류 0 · swagger-parser validate 통과</span><span>23</span></div>
+</section>
+
+<!-- 24 API 목록 -->
+<section class="slide pad" style="padding-top:44px">
+  <div class="eyebrow">06 API 명세 정의 · 목록 · 요청 · 응답 · 예외</div>
+  <table class="t xs" style="margin-top:14px;font-size:14.5px">
+    <tr><th style="width:80px">메서드</th><th style="width:420px">경로</th><th style="width:250px">설명</th><th style="width:420px">요청</th><th style="width:300px">응답</th><th>예외</th></tr>
+    <tr><td><span class="m get">GET</span></td><td>/health</td><td>서버 상태</td><td>—</td><td>200 Health</td><td>—</td></tr>
+    <tr><td><span class="m get">GET</span></td><td>/auth/csrf</td><td>CSRF 토큰 발급</td><td>—</td><td>200 CsrfToken</td><td>—</td></tr>
+    <tr><td><span class="m post">POST</span></td><td>/auth/signup</td><td>회원가입</td><td>SignupRequest</td><td>201 User</td><td>400 · 403 · 409</td></tr>
+    <tr><td><span class="m post">POST</span></td><td>/auth/login</td><td>로그인</td><td>LoginRequest</td><td>200 User</td><td>400 · 401 · 403 · 429</td></tr>
+    <tr><td><span class="m post">POST</span></td><td>/auth/logout</td><td>로그아웃</td><td>—</td><td>204</td><td>403</td></tr>
+    <tr><td><span class="m get">GET</span></td><td>/me</td><td>로그인 사용자</td><td>—</td><td>200 User</td><td>401</td></tr>
+    <tr><td><span class="m get">GET</span></td><td>/guide</td><td>면허 절차·출처</td><td>—</td><td>200 Guide</td><td>—</td></tr>
+    <tr><td><span class="m get">GET</span></td><td>/dashboard</td><td>대시보드</td><td>—</td><td>200 Dashboard</td><td>401</td></tr>
+    <tr><td><span class="m get">GET</span></td><td>/written/catalog</td><td>필기 주제</td><td>—</td><td>200 WrittenCatalog</td><td>401</td></tr>
+    <tr><td><span class="m post">POST</span></td><td>/written/attempts</td><td>필기 시작</td><td>WrittenAttemptCreateRequest · Idempotency-Key</td><td>201 WrittenAttempt</td><td>400 · 401 · 403 · 409</td></tr>
+    <tr><td><span class="m get">GET</span></td><td>/written/attempts</td><td>내 필기 시도 목록</td><td>?limit</td><td>200 {items}</td><td>400 · 401</td></tr>
+    <tr><td><span class="m get">GET</span></td><td>/written/attempts/{attemptId}</td><td>시도 조회</td><td>—</td><td>200 WrittenAttempt</td><td>401 · 404</td></tr>
+    <tr><td><span class="m put">PUT</span></td><td>/written/attempts/{attemptId}/answers/{questionId}</td><td>답안 저장</td><td>AnswerSaveRequest</td><td>200 AnswerSaved</td><td>400 · 401 · 403 · 404 · 409</td></tr>
+    <tr><td><span class="m post">POST</span></td><td>/written/attempts/{attemptId}/submit</td><td>제출·채점</td><td>—</td><td>200 WrittenResult</td><td>401 · 403 · 404 · 409</td></tr>
+    <tr><td><span class="m get">GET</span></td><td>/written/attempts/{attemptId}/result</td><td>필기 결과</td><td>—</td><td>200 WrittenResult</td><td>401 · 404 · 409</td></tr>
+    <tr><td><span class="m get">GET</span></td><td>/written/answers/{answerId}</td><td>정답·해설·근거</td><td>—</td><td>200 AnswerReview</td><td>401 · 404 · 409</td></tr>
+    <tr><td><span class="m get">GET</span></td><td>/scenarios</td><td>코스 목록</td><td>?kind</td><td>200 {items: ScenarioItem}</td><td>400 · 401</td></tr>
+    <tr><td><span class="m get">GET</span></td><td>/scenarios/{scenarioId}</td><td>코스 상세</td><td>—</td><td>200 ScenarioDetail</td><td>401 · 404</td></tr>
+    <tr><td><span class="m get">GET</span></td><td>/scoring-rules</td><td>별표26 채점기준</td><td>—</td><td>200 {items: ScoringRule}</td><td>401</td></tr>
+    <tr><td><span class="m post">POST</span></td><td>/training/sessions</td><td>주행 시작</td><td>TrainingSessionCreateRequest · Idempotency-Key</td><td>201 TrainingSessionSummary</td><td>400 · 401 · 403 · 404 · 409</td></tr>
+    <tr><td><span class="m get">GET</span></td><td>/training/sessions</td><td>내 주행 목록</td><td>?limit</td><td>200 {items}</td><td>400 · 401</td></tr>
+    <tr><td><span class="m get">GET</span></td><td>/training/sessions/{sessionId}</td><td>주행 결과 상세</td><td>—</td><td>200 TrainingSessionDetail</td><td>401 · 404</td></tr>
+    <tr><td><span class="m post">POST</span></td><td>/training/sessions/{sessionId}/complete</td><td>종료·서버 재생 검증</td><td>TrainingCompleteRequest</td><td>200 TrainingResult</td><td>400 · 401 · 403 · 404 · 409 · 413</td></tr>
+    <tr><td><span class="m post">POST</span></td><td>/training/sessions/{sessionId}/abort</td><td>주행 중단</td><td>TrainingAbortRequest</td><td>200 TrainingSessionSummary</td><td>400 · 401 · 403 · 404 · 409</td></tr>
+    <tr><td><span class="m post">POST</span></td><td>/ai/jobs</td><td>AI 해설·리포트 요청</td><td>AiJobCreateRequest · Idempotency-Key</td><td>202 AiJob</td><td>400 · 401 · 403 · 404 · 409</td></tr>
+    <tr><td><span class="m get">GET</span></td><td>/ai/jobs</td><td>내 AI 작업 목록</td><td>?kind · ?limit</td><td>200 {items: AiJob}</td><td>400 · 401</td></tr>
+    <tr><td><span class="m get">GET</span></td><td>/ai/jobs/{jobId}</td><td>AI 작업 상태·결과</td><td>—</td><td>200 AiJob</td><td>401 · 404</td></tr>
+  </table>
+  <div class="foot"><span>서버 기본 경로 /api/v1 · 변경 요청(POST·PUT)은 X-CSRF-Token 헤더 필수</span><span>24</span></div>
+</section>
+
+<!-- 25 고려사항 -->
+<section class="slide pad">
+  <div class="eyebrow">07 고려사항</div>
+  <div class="h2">설계하면서 고민한 것과 다음 단계</div>
+  <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:30px;gap:20px 40px">
+    <div class="card"><h4><span class="num">01</span> 정답과 판정은 서버·데이터가 정합니다</h4><p>필기 정답은 검수 데이터, 주행 사건은 서버 재생 결과가 기준입니다. 브라우저 결과와 다르면 “불일치 → 서버 기준”으로 표시합니다.</p></div>
+    <div class="card"><h4><span class="num">02</span> AI는 설명만, 근거 밖 주장은 막습니다</h4><p>AI 입력은 서버가 만든 스냅샷뿐이고, 인용 ID·수치를 서버가 검증합니다. 측정하지 않은 거울 확인·반응시간은 분석하지 않습니다.</p></div>
+    <div class="card"><h4><span class="num">03</span> 확인 안 된 공식 기준은 켜지 않습니다</h4><p>별표26 57항목 중 자동 채점(A) 0개 · 연습 표시(B) · 안내만(C)으로 구분했습니다. 공식 문제은행과 모의고사는 이용 조건·검수 전이라 비활성입니다.</p></div>
+    <div class="card"><h4><span class="num">04</span> 센서는 서버를 거치지 않습니다</h4><p>조향은 즉시 반응해야 해서 Web Serial로 직접 읽고, roll만 조향에 씁니다. 단절·포커스 상실은 즉시 정지로 처리합니다.</p></div>
+  </div>
+  <table class="t s" style="margin-top:24px">
+    <tr><th style="width:280px">구분</th><th>내용</th></tr>
+    <tr><td>검증한 것</td><td>백엔드 테스트 14개 · 프런트 테스트 20개 통과 · 타입 검사·빌드 성공 · API 실제 응답 53건 명세 대조 불일치 0 · DBML 파싱 오류 0 · 실제 LLM 해설·리포트 생성 화면 확인</td></tr>
+    <tr><td>아직 확인 못 한 것</td><td>센서 핸들 좌·우 실측과 민감도 기본값 확정(장비에서 사용자 확인 필요) · 공식 문제은행 이용 조건 · 속도 경계·정지선 중첩 판정</td></tr>
+    <tr><td>다음 단계</td><td>센서 실측 후 프리셋 확정 → 검증된 항목부터 자동 채점(A) 활성화 → 공식 문항 검수 후 모의고사 → PostgreSQL 전환과 배포</td></tr>
+  </table>
+  <div class="foot"><span>전진만할게요 · 프로젝트 기술서</span><span>25</span></div>
+</section>
+
+</body>
+</html>
