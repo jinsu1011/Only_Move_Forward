@@ -112,7 +112,7 @@
     <tr><td>서비스 형태</td><td>브라우저로 쓰는 개인 학습 웹 서비스 (Chrome 권장, 센서 핸들은 선택)</td></tr>
     <tr><td>타깃 사용자</td><td>1종·2종 보통 운전면허를 준비하는 학습자 (학과시험 ~ 도로주행시험 준비 단계)</td></tr>
     <tr><td>목적</td><td>왜 틀렸는지를 조문으로 확인하게 하고, 도로에서 감점될 실수를 시뮬레이션에서 먼저 겪게 한다</td></tr>
-    <tr><td>주요 기능</td><td>① 주제별 필기 연습·채점 ② 오답 해설 + AI 설명 ③ 기본조작·도로주행 3D 시뮬레이션(키보드 / 센서 핸들) ④ 서버 재생 검증 결과 ⑤ AI 통합 학습 리포트</td></tr>
+    <tr><td>주요 기능</td><td>① 주제별 필기 연습·채점 ② 오답 해설 + AI 설명 ③ 기본조작·장내기능·도로주행 3D 시뮬레이션(키보드 / 센서 핸들) ④ 서버 재생 검증 결과 ⑤ AI 통합 학습 리포트</td></tr>
     <tr><td>포지셔닝</td><td><span class="tag r">대체하지 않음</span> 공식 시험·실차교육을 대체하지 않는 <b>학습 보조</b>. 주행 판정은 연습용이며 공식 채점이 아님을 화면마다 표시</td></tr>
   </table></div>
   <div class="foot"><span>전진만할게요 · 프로젝트 기술서</span><span class="pg"></span></div>
@@ -147,7 +147,7 @@
   <div class="fillbody"><table class="t" style="margin-top:34px">
     <tr><th style="width:300px">핵심 가치</th><th style="width:150px">해결 문제</th><th>주요 기능</th></tr>
     <tr><td>근거로 이해하는 오답</td><td>문제 1</td><td>제출 후에만 정답 공개 · 검수 해설 + <b>조문 근거</b> · AI 오답 코칭(정답은 데이터가 고정, AI는 설명만, 인용 조문 서버 검증)</td></tr>
-    <tr><td>실격 사유를 미리 겪는 주행</td><td>문제 2</td><td>기본조작 연습장 · 도심 도로주행 A코스(신호·어린이보호구역·횡단보도) · 별표26 항목에 연결된 <b>연습 판정</b> · 사건을 끊지 않고 누적</td></tr>
+    <tr><td>실격 사유를 미리 겪는 주행</td><td>문제 2</td><td>기본조작 연습장 · 장내기능 코스(경사로 정지·직각주차) · 도심 도로주행 A코스(신호·어린이보호구역·횡단보도) · 별표26 항목에 연결된 <b>연습 판정</b> · 사건을 끊지 않고 누적</td></tr>
     <tr><td>믿을 수 있는 기록</td><td>문제 2·3</td><td>브라우저 입력 기록을 <b>서버가 같은 엔진으로 재생해 사건 확정</b> · 일치/불일치 표시 · 과거 결과 덮어쓰지 않음</td></tr>
     <tr><td>하나로 모은 다음 연습</td><td>문제 3</td><td>필기 주제별 정답률 + 주행 사건 빈도를 서버가 계산 → <b>AI 통합 리포트</b>(수치·근거 ID 서버 검증, 실패 시 규칙 기반 요약)</td></tr>
     <tr><td>있는 장비로 시작</td><td>문제 2</td><td>키보드(W/S 전진·후진, A/D 조향)가 기본 · 선택으로 <b>MPU-6050 센서 핸들</b>(roll 좌우 조향 + ↑/↓ 전진·후진)</td></tr>
@@ -241,7 +241,7 @@
     <tr><td>FR-L06</td><td>제출·채점</td><td>서버가 검수 정답으로 채점, 주제별 결과</td><td>S-06 → S-07</td><td><span class="m post">POST</span> …/submit · <span class="m get">GET</span> …/result</td></tr>
     <tr><td>FR-L07</td><td>오답 해설</td><td>내 선택·정답·검수 해설·조문 근거, 이전/다음 문항</td><td>S-08</td><td><span class="m get">GET</span> /written/answers/{id}</td></tr>
     <tr><td>FR-L08</td><td>AI 오답 코칭</td><td>근거 조문만으로 설명, 인용 검증, 실패 시 검수 해설 유지</td><td>S-08</td><td><span class="m post">POST</span> /ai/jobs (EXPLANATION) · <span class="m get">GET</span> /ai/jobs/{id}</td></tr>
-    <tr><td>FR-L09</td><td>코스·채점기준 보기</td><td>기본조작/도로 코스, 별표26 57항목 A/B/C 지원 범위</td><td>S-09</td><td><span class="m get">GET</span> /scenarios · <span class="m get">GET</span> /scoring-rules</td></tr>
+    <tr><td>FR-L09</td><td>코스·채점기준 보기</td><td>기본조작·장내기능·도로 코스 3개, 별표26 57항목 A/B/C 지원 범위</td><td>S-09</td><td><span class="m get">GET</span> /scenarios · <span class="m get">GET</span> /scoring-rules</td></tr>
     <tr><td>FR-L10</td><td>키보드 입력 확인</td><td>A·D·W·S 한 번씩 확인 후 READY, R 초기화</td><td>S-10</td><td><span class="m get">GET</span> /scenarios/{id}</td></tr>
     <tr><td>FR-L11</td><td>센서 연결·정렬</td><td>중앙 3초 → 좌 → 중앙 → 우 → 중앙 → READY, 반전·민감도</td><td>S-10</td><td>Web Serial (서버 API 없음)</td></tr>
     <tr><td>FR-L12</td><td>주행 시작</td><td>입력 방식·보정값 저장, 이전 진행 세션 대체</td><td>S-10 → S-11</td><td><span class="m post">POST</span> /training/sessions</td></tr>
@@ -615,7 +615,7 @@
   <table class="t s" style="margin-top:24px">
     <tr><th style="width:280px">구분</th><th>내용</th></tr>
     <tr><td>검증한 것</td><td>백엔드 17 · 프런트 22 테스트 통과 · 타입 검사·빌드 성공 · 실제 응답 53건을 명세와 대조해 불일치 0 · DBML 파싱 오류 0 · 실제 LLM 해설·리포트 화면 확인 · 센서 시리얼 직독으로 50Hz·잡음 0.088° 측정</td></tr>
-    <tr><td>아직 못 한 것</td><td>센서 좌·우 방향(반전 여부) 확정 · 브라우저 Web Serial 정렬 절차 완주 · 공식 문제은행 이용 조건 · 속도 경계와 정지선이 겹칠 때의 판정</td></tr>
+    <tr><td>아직 못 한 것</td><td>센서 좌·우 방향(반전 여부) 확정 · 장내기능 코스의 기능시험 채점표(별표24) 연결 · 브라우저 Web Serial 정렬 절차 완주 · 공식 문제은행 이용 조건 · 속도 경계와 정지선이 겹칠 때의 판정</td></tr>
     <tr><td>다음 단계</td><td>roll 과 pitch 로 핸들 각도를 복원해 장착 각도에 안 흔들리게 만들기 → 검증한 항목부터 자동 채점(A) 켜기 → 공식 문항 검수 후 모의고사 → PostgreSQL 전환과 배포</td></tr>
   </table></div>
   <div class="foot"><span>전진만할게요 · 프로젝트 기술서</span><span class="pg"></span></div>
@@ -702,7 +702,7 @@
   <div class="fillbody"><table class="t" style="margin-top:28px">
     <tr><th style="width:330px">문제</th><th style="width:250px">해결 기능</th><th>핵심 설계</th></tr>
     <tr><td>왜 틀렸는지 모른 채 같은 주제를 반복해 틀린다</td><td><b>필기 연습 · 오답 해설</b></td><td>제출 전에는 정답을 응답에 담지 않음 · 검수 해설과 근거 조문 · AI 는 설명만</td></tr>
-    <tr><td>실격 사유를 실제 주행 전에 겪을 기회가 없다</td><td><b>기본조작 · 도로주행 시뮬레이션</b></td><td>기본조작 연습장과 도심 도로주행 A코스 · 별표26 항목에 연결된 연습 판정 · 사건을 끊지 않고 누적</td></tr>
+    <tr><td>실격 사유를 실제 주행 전에 겪을 기회가 없다</td><td><b>기본조작 · 장내기능 · 도로주행 시뮬레이션</b></td><td>기본조작 연습장 · 장내기능 코스 · 도심 도로주행 A코스 · 별표26 항목에 연결된 연습 판정 · 사건을 끊지 않고 누적</td></tr>
     <tr><td>필기 약점과 주행 실수를 함께 볼 방법이 없다</td><td><b>AI 통합 리포트</b></td><td>서버가 계산한 숫자만 AI 에 전달 · 응답의 수치와 근거를 서버가 재검사</td></tr>
   </table>
   <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:24px">

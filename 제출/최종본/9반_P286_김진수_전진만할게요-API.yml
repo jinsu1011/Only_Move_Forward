@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: |
     1·2종 보통 운전면허 준비자를 위한 학습 보조 웹 서비스의 REST API 명세입니다.
-    필기 연습·오답 해설, 기본조작·도로주행 시뮬레이션 연습, AI 통합 학습 리포트를 제공합니다.
+    필기 연습·오답 해설, 기본조작·장내기능·도로주행 시뮬레이션 연습, AI 통합 학습 리포트를 제공합니다.
     공식 운전면허 시험·실차교육을 대체하지 않으며, 주행 판정은 연습용입니다.
 
     ## 공통 규칙
@@ -383,7 +383,7 @@ paths:
       tags: [driving]
       operationId: listScenarios
       summary: 주행 코스 목록
-      description: '[화면] 주행 홈(기본조작 연습장·도로주행 A코스 선택)'
+      description: '[화면] 주행 홈(기본조작 연습장·장내기능 코스·도로주행 A코스 선택)'
       parameters:
         - name: kind
           in: query
@@ -1190,7 +1190,7 @@ components:
     # ---------- 주행 ----------
     ScenarioKind:
       type: string
-      description: 기본조작 연습장 / 도로주행
+      description: FUNCTION = 기본조작 연습장·장내기능 코스 / ROAD = 도로주행
       enum: [FUNCTION, ROAD]
     InputMode:
       type: string

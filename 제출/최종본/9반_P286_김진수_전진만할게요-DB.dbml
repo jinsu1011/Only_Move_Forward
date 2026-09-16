@@ -61,7 +61,7 @@ Enum support_level {
 }
 
 Enum scenario_kind {
-  FUNCTION [note: '기본조작 연습장']
+  FUNCTION [note: '기본조작 연습장 · 장내기능 코스']
   ROAD [note: '도로주행 코스']
 }
 
