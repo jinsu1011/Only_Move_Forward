@@ -15,8 +15,13 @@ export interface SensorTuning {
   dwellMs: number
 }
 
+// LOW 는 2026-09-16 실측(50Hz, 28초)으로 정했다. 센서를 핸들에 세워 달면 칩 pitch 가 90° 에
+// 가까워지는 구간이 생기고, roll = atan2(ay, az) 의 분모가 작아져 가만히 있어도 각도가 크게 흔들린다
+// (pitch 2~6° 일 때 변동 1° 미만, 82~88° 일 때 8~78°). 그 구간 기록으로 필터를 재생해 보니
+// 진입 20°·유지 400ms 가 헛조향을 4회 → 2회로 줄였다. 응답은 25° 기울기에 460ms → 680ms 로 느려지는데,
+// 둔감 프리셋의 목적이 안정성이라 이 교환을 택했다. NORMAL·HIGH 는 응답 속도를 지키려고 그대로 둔다.
 export const SENSITIVITY_PRESETS: Record<Sensitivity, SensorTuning & { label: string; hint: string }> = {
-  LOW: { label: '둔감', hint: '크게 기울여야 꺾입니다. 손떨림이 심할 때', enter: 18, exit: 10, smoothingMs: 220, dwellMs: 180 },
+  LOW: { label: '둔감', hint: '크게 기울여야 꺾입니다. 손떨림이 심하거나 각도가 흔들릴 때', enter: 20, exit: 10, smoothingMs: 180, dwellMs: 400 },
   NORMAL: { label: '보통', hint: '기본값', enter: 15, exit: 8, smoothingMs: 150, dwellMs: 120 },
   HIGH: { label: '민감', hint: '조금만 기울여도 꺾입니다', enter: 11, exit: 6, smoothingMs: 80, dwellMs: 60 },
 }
