@@ -20,7 +20,7 @@ await (await page.$('form button.primary')).click();
 await page.waitForFunction(() => location.pathname === '/app');
 
 await page.goto(`${BASE}/written/answers/${ANSWER_ID}`, { waitUntil: 'networkidle0' });
-await page.waitForFunction(() => document.body.innerText.includes('다시 요청'), { timeout: 30000 }).catch(() => console.log('AI 결과 표시 없음'));
+await page.waitForFunction(() => document.body.innerText.includes('다시 요청') || (document.body.innerText.includes('인용') && !document.body.innerText.includes('작성하는 중')), { timeout: 30000 }).catch(() => console.log('AI 결과 표시 없음'));
 await sleep(800);
 await page.screenshot({ path: path.join(OUT, 'C-10_AI오답해설.png'), fullPage: true });
 console.log('shot C-10');

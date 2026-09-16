@@ -1,8 +1,10 @@
 // 실행 중인 웹(5180)을 실제로 조작하며 화면을 캡처한다. 데모 계정은 가상 이메일만 사용한다.
 import puppeteer from 'puppeteer-core';
 import path from 'path';
+import fs from 'fs';
 
 const OUT = process.argv[2];
+const KEY = process.argv[3] ? JSON.parse(fs.readFileSync(process.argv[3], 'utf8')) : null;
 const BASE = 'http://127.0.0.1:5180';
 const EMAIL = `demo${Date.now().toString(36)}@example.com`;
 const PW = 'drive2026';
@@ -75,7 +77,16 @@ await page.waitForSelector('.option');
 const total = await page.$$eval('.qnav button, [class*="answered"], .grid button', () => 0).catch(() => 0);
 for (let i = 0; i < 40; i++) {
   const opts = await page.$$('.option');
-  await opts[(i * 3) % opts.length].click();
+  // 답안 키가 있으면 10문항 중 7문항은 정답, 3문항은 일부러 오답을 고른다(오답 해설 화면용).
+  let pick = (i * 3) % opts.length;
+  if (KEY) {
+    const texts = await page.$$eval('.option', (os) => os.map((o) => o.innerText));
+    const body = await page.evaluate(() => document.body.innerText);
+    const k = KEY.find((q) => body.includes(q.p));
+    const ci = k ? texts.findIndex((t) => k.c.some((c) => t.includes(c))) : -1;
+    if (ci >= 0) pick = [1, 4, 8].includes(i) ? (ci + 1) % opts.length : ci;
+  }
+  await opts[pick].click();
   await sleep(350);
   if (i === 2) await shot('C-06_필기_문제풀이');
   const next = await page.evaluateHandle(() => [...document.querySelectorAll('button')].find((b) => b.textContent.includes('다음 →') && !b.disabled));

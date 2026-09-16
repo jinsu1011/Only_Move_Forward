@@ -43,7 +43,8 @@
   .ui { display: grid; gap: 30px; margin-top: 24px; align-items: start; }
   .shot { position: relative; overflow: hidden; border: 1px solid #cfc8bb; background: #fff; box-shadow: 0 10px 28px rgba(23,34,28,.10); }
   .shot img { display: block; width: 100%; }
-  .shot.crop img { object-fit: cover; object-position: top; height: 100%; }
+  .shot.crop { background: #f2f0e9; }
+  .shot.crop img { height: auto; }
   .cap { margin-top: 8px; font-size: 16px; color: var(--muted); }
   .notes { list-style: none; }
   .notes li { display: grid; grid-template-columns: 34px 1fr; gap: 10px; padding: 14px 0; border-bottom: 1px solid var(--line); font-size: 19px; line-height: 1.55; color: var(--body); }
@@ -295,10 +296,10 @@
   <div class="h2" style="font-size:40px">가입하면 바로 로그인 · 틀려도 쓴 건 남는다</div>
   
   <div class="fillbody"><div class="ui" style="grid-template-columns:560px 560px 1fr">
-    <div><div class="shot crop" style="height:350px"><img src="../자료/캡처/C-01_서비스소개.png"></div><div class="cap">C-01 서비스 소개 (S-01)</div>
-         <div class="shot crop" style="height:350px;margin-top:14px"><img src="../자료/캡처/C-03_로그인_오류.png"></div><div class="cap">C-03 로그인 실패 (S-03)</div></div>
-    <div><div class="shot crop" style="height:350px"><img src="../자료/캡처/C-02_회원가입_비밀번호규칙.png"></div><div class="cap">C-02 회원가입 — 비밀번호 규칙 미충족 (S-02)</div>
-         <div class="shot crop" style="height:350px;margin-top:14px"><img src="../자료/캡처/C-04_대시보드_첫방문.png"></div><div class="cap">C-04 가입 직후 대시보드 (S-04)</div></div>
+    <div><div class="shot crop" style="max-height:350px"><img src="../자료/캡처/C-01_서비스소개.png"></div><div class="cap">C-01 서비스 소개 (S-01)</div>
+         <div class="shot crop" style="max-height:350px;margin-top:14px"><img src="../자료/캡처/C-03_로그인_오류.png"></div><div class="cap">C-03 로그인 실패 (S-03)</div></div>
+    <div><div class="shot crop" style="max-height:350px"><img src="../자료/캡처/C-02_회원가입_비밀번호규칙.png"></div><div class="cap">C-02 회원가입 — 비밀번호 규칙 미충족 (S-02)</div>
+         <div class="shot crop" style="max-height:350px;margin-top:14px"><img src="../자료/캡처/C-04_대시보드_첫방문.png"></div><div class="cap">C-04 가입 직후 대시보드 (S-04)</div></div>
     <ul class="notes">
       <li><span class="n">1</span><div><b>시작하기 · 로그인</b> 버튼, 학습 흐름 소개<span class="go">→ S-02 / S-03</span></div></li>
       <li><span class="n">2</span><div><b>회원가입</b> 이메일 · 비밀번호 · 닉네임 · 1종/2종 보통. 규칙 미충족이면 버튼 비활성<span class="api">GET /auth/csrf → POST /auth/signup → 201 User</span><span class="ex">400 VALIDATION_ERROR 필드별 사유 · 409 EMAIL_TAKEN</span></div></li>
@@ -315,7 +316,7 @@
   <div class="h2" style="font-size:40px">지금 어디까지 왔는지 한 화면에</div>
   
   <div class="fillbody"><div class="ui" style="grid-template-columns:1000px 1fr">
-    <div><div class="shot crop" style="height:720px"><img src="../자료/캡처/C-22_대시보드_기록.png"></div><div class="cap">C-22 기록이 쌓인 대시보드</div></div>
+    <div><div class="shot crop" style="max-height:720px"><img src="../자료/캡처/C-22_대시보드_기록.png"></div><div class="cap">C-22 기록이 쌓인 대시보드</div></div>
     <ul class="notes">
       <li><span class="n">1</span><div><b>요약 지표</b> 필기 누적 정답률 · 제출 수 · 주행 횟수 · 센서 연결 상태<span class="api">GET /dashboard → written.submitted_count · correct_total · answer_total, driving.session_count</span></div></li>
       <li><span class="n">2</span><div><b>이어 풀기</b> 제출 전 시도가 있으면 표시<span class="api">written.in_progress {id, question_count, started_at}</span><span class="go">→ S-06</span></div></li>
@@ -333,10 +334,10 @@
   <div class="h2" style="font-size:40px">누를 때마다 저장 · 제출 전엔 정답을 안 준다</div>
   
   <div class="fillbody"><div class="ui" style="grid-template-columns:640px 640px 1fr">
-    <div><div class="shot crop" style="height:470px"><img src="../자료/캡처/C-05_필기_설정.png"></div><div class="cap">C-05 필기 설정 (S-05)</div></div>
-    <div><div class="shot crop" style="height:470px"><img src="../자료/캡처/C-06_필기_문제풀이.png"></div><div class="cap">C-06 문제 풀이 (S-06)</div></div>
+    <div><div class="shot crop" style="max-height:470px"><img src="../자료/캡처/C-05_필기_설정.png"></div><div class="cap">C-05 필기 설정 (S-05)</div></div>
+    <div><div class="shot crop" style="max-height:470px"><img src="../자료/캡처/C-06_필기_문제풀이.png"></div><div class="cap">C-06 문제 풀이 (S-06)</div></div>
     <ul class="notes">
-      <li><span class="n">1</span><div><b>주제 칩</b>(문항 수 표시) · <b>문항 수</b> 5/10/20/40<span class="api">GET /written/catalog → categories[] {id, name, question_count}</span></div></li>
+      <li><span class="n">1</span><div><b>주제 칩</b>(여러 개 선택) · <b>문항 수</b> 5/10/20/40<span class="api">GET /written/catalog → categories[] {id, name, question_count}</span></div></li>
       <li><span class="n">2</span><div><b>모드</b> 주제별 연습만 활성, 실전 모의고사는 비활성 사유 표시<span class="api">modes[] {available, reason}</span></div></li>
       <li><span class="n">3</span><div><b>연습 시작</b><span class="api">POST /written/attempts + Idempotency-Key → 201</span><span class="ex">409 NO_REVIEWED_QUESTIONS</span></div></li>
       <li><span class="n">4</span><div><b>보기 선택</b> 즉시 저장 · “서버에 저장됨” 표시, 실패 시 다시 저장<span class="api">PUT /written/attempts/{id}/answers/{questionId}</span><span class="ex">409 ATTEMPT_ALREADY_SUBMITTED → 결과로</span></div></li>
@@ -352,8 +353,8 @@
   <div class="h2" style="font-size:40px">채점은 서버가 · 약한 주제는 따로 보여준다</div>
   
   <div class="fillbody"><div class="ui" style="grid-template-columns:600px 700px 1fr">
-    <div><div class="shot crop" style="height:400px"><img src="../자료/캡처/C-07_필기_제출확인.png"></div><div class="cap">C-07 제출 확인 모달</div></div>
-    <div><div class="shot crop" style="height:720px"><img src="../자료/캡처/C-08_필기_결과.png"></div><div class="cap">C-08 필기 결과 (S-07)</div></div>
+    <div><div class="shot crop" style="max-height:400px"><img src="../자료/캡처/C-07_필기_제출확인.png"></div><div class="cap">C-07 제출 확인 모달</div></div>
+    <div><div class="shot crop" style="max-height:720px"><img src="../자료/캡처/C-08_필기_결과.png"></div><div class="cap">C-08 필기 결과 (S-07)</div></div>
     <ul class="notes">
       <li><span class="n">1</span><div><b>제출 확인</b> 답하지 않은 문항은 오답 처리 안내 · 계속 풀기 / 제출하고 채점<span class="api">POST /written/attempts/{id}/submit → 200 WrittenResult</span><span class="ex">다시 보내도 같은 결과 (재시도 안전)</span></div></li>
       <li><span class="n">2</span><div><b>점수·정답 수</b> 연습 모드는 합격 판정 없음을 표시<span class="api">score · max_score · outcome = PRACTICE_NO_PASS_JUDGEMENT</span></div></li>
@@ -371,7 +372,7 @@
   <div class="h2" style="font-size:40px">정답은 데이터가 · AI 는 설명만</div>
   
   <div class="fillbody"><div class="ui" style="grid-template-columns:1040px 1fr">
-    <div><div class="shot crop" style="height:700px"><img src="../자료/캡처/C-10_AI오답해설.png"></div><div class="cap">C-10 오답 해설 + AI 오답 코칭 (실제 LLM 응답)</div></div>
+    <div><div class="shot crop" style="max-height:700px"><img src="../자료/캡처/C-10_AI오답해설.png"></div><div class="cap">C-10 오답 해설 + AI 오답 코칭 (실제 LLM 응답)</div></div>
     <ul class="notes">
       <li><span class="n">1</span><div><b>내 선택 / 정답</b> 표시 · 주제 · 자체 제작 연습 문항 표시<span class="api">GET /written/answers/{id} → selected_option_ids · correct_option_ids</span><span class="ex">409 ATTEMPT_NOT_SUBMITTED (제출 전 비공개)</span></div></li>
       <li><span class="n">2</span><div><b>검수 해설 · 근거 조문</b> 출처와 조회일<span class="api">question.explanation · evidence {locator, content, source_url}</span></div></li>
@@ -389,10 +390,10 @@
   <div class="h2" style="font-size:40px">READY 전에는 못 나간다</div>
   
   <div class="fillbody"><div class="ui" style="grid-template-columns:560px 560px 1fr">
-    <div><div class="shot crop" style="height:350px"><img src="../자료/캡처/C-11_주행_코스선택.png"></div><div class="cap">C-11 코스 선택 · 채점기준 지원 범위 (S-09)</div>
-         <div class="shot crop" style="height:350px;margin-top:14px"><img src="../자료/캡처/C-12_센서_연결안내.png"></div><div class="cap">C-12 센서 모드 — 연결 전 (S-10)</div></div>
-    <div><div class="shot crop" style="height:350px"><img src="../자료/캡처/C-13_키보드_입력확인_전.png"></div><div class="cap">C-13 키보드 모드 — CENTER / STOP</div>
-         <div class="shot crop" style="height:350px;margin-top:14px"><img src="../자료/캡처/C-14_키보드_READY.png"></div><div class="cap">C-14 네 키 확인 → READY</div></div>
+    <div><div class="shot crop" style="max-height:350px"><img src="../자료/캡처/C-11_주행_코스선택.png" style="margin-top:-235px"></div><div class="cap">C-11 코스 선택 · 채점기준 지원 범위 (S-09)</div>
+         <div class="shot crop" style="max-height:350px;margin-top:14px"><img src="../자료/캡처/C-12_센서_연결안내.png"></div><div class="cap">C-12 센서 모드 — 연결 전 (S-10)</div></div>
+    <div><div class="shot crop" style="max-height:350px"><img src="../자료/캡처/C-13_키보드_입력확인_전.png"></div><div class="cap">C-13 키보드 모드 — CENTER / STOP</div>
+         <div class="shot crop" style="max-height:350px;margin-top:14px"><img src="../자료/캡처/C-14_키보드_READY.png"></div><div class="cap">C-14 네 키 확인 → READY</div></div>
     <ul class="notes">
       <li><span class="n">1</span><div><b>코스 카드</b> 길이 · 제한 시간 · 신호/보호구역/횡단보도 수<span class="api">GET /scenarios → items[] {length_m, time_limit_s, features}</span></div></li>
       <li><span class="n">2</span><div><b>별표26 지원 범위 표</b> B 연습 표시 · C 안내만 · A 0개<span class="api">GET /scoring-rules → support · method · limitations</span></div></li>
@@ -428,7 +429,7 @@
   <div class="h2" style="font-size:40px">브라우저 말을 그대로 믿지 않는다</div>
   
   <div class="fillbody"><div class="ui" style="grid-template-columns:1000px 1fr">
-    <div><div class="shot crop" style="height:690px"><img src="../자료/캡처/C-18_주행_결과.png"></div><div class="cap">C-18 주행 결과 — 서버 재생 검증 일치, 경로·사건 위치 재현</div></div>
+    <div><div class="shot crop" style="max-height:690px"><img src="../자료/캡처/C-18_주행_결과.png"></div><div class="cap">C-18 주행 결과 — 서버 재생 검증 일치, 경로·사건 위치 재현</div></div>
     <ul class="notes">
       <li><span class="n">1</span><div><b>결과 상태</b> 완주 / 완주·실격 사유 포함 / 미완료<span class="api">GET /training/sessions/{id} → status</span></div></li>
       <li><span class="n">2</span><div><b>서버 재생 검증</b> 일치 또는 “불일치 → 서버 기준”<span class="api">verification_status (VERIFIED · MISMATCH)</span></div></li>
@@ -446,7 +447,7 @@
   <div class="h2" style="font-size:40px">숫자는 서버가 내고 · AI 는 말로 푼다</div>
   
   <div class="fillbody"><div class="ui" style="grid-template-columns:900px 1fr">
-    <div><div class="shot crop" style="height:720px"><img src="../자료/캡처/C-21_AI리포트.png"></div><div class="cap">C-21 AI 통합 리포트 (실제 LLM 응답)</div></div>
+    <div><div class="shot crop" style="max-height:720px"><img src="../자료/캡처/C-21_AI리포트.png"></div><div class="cap">C-21 AI 통합 리포트 (실제 LLM 응답)</div></div>
     <ul class="notes">
       <li><span class="n">1</span><div><b>리포트 생성 / 최신 기록으로 다시 분석</b><span class="api">POST /ai/jobs {kind: REPORT} → 202 · GET /ai/jobs/{id}</span></div></li>
       <li><span class="n">2</span><div><b>헤드라인 · 요약</b> 모델·프롬프트 버전 표시<span class="api">result.narrative {headline, summary} · model_version</span></div></li>
@@ -464,8 +465,7 @@
   <div class="h2" style="font-size:40px">실패해도 쓴 것은 지우지 않는다</div>
   
   <div class="fillbody"><div class="ui" style="grid-template-columns:620px 1fr">
-    <div><div class="shot" style="height:388px"><img src="../자료/캡처/C-17_주행_일시정지.png"></div><div class="cap">C-17 주행 일시정지 (Esc · 창 포커스 상실)</div>
-         <div class="shot crop" style="height:300px;margin-top:14px"><img src="../자료/캡처/C-23_없는페이지.png"></div><div class="cap">C-23 없는 주소</div></div>
+    <div><div class="shot" style="height:388px"><img src="../자료/캡처/C-17_주행_일시정지.png"></div><div class="cap">C-17 주행 일시정지 (Esc · 창 포커스 상실)</div></div>
     <table class="t s">
       <tr><th style="width:260px">상황</th><th>화면 동작</th><th style="width:300px">서버</th></tr>
       <tr><td>입력 형식 오류</td><td>필드별 사유 표시, 비밀번호 외 입력 유지</td><td>400 VALIDATION_ERROR</td></tr>
@@ -491,7 +491,7 @@
   <div class="h2" style="font-size:40px">화면과 API 가 쓰는 데이터를 테이블 20개로</div>
   
   <div class="fillbody"><div style="margin-top:10px;font-size:26px;font-weight:800;color:var(--green)">20 <span style="color:var(--body);font-size:20px;font-weight:700">테이블</span> · 27 <span style="color:var(--body);font-size:20px;font-weight:700">FK 관계</span> · 15 <span style="color:var(--body);font-size:20px;font-weight:700">Enum</span> · 4 <span style="color:var(--body);font-size:20px;font-weight:700">M:N 연결</span></div>
-  <div class="shot" style="margin-top:12px;height:636px;display:flex;align-items:center;justify-content:center;background:#fff"><img src="../자료/도구캡처/ERD_전체_키만.png" style="width:auto;max-width:100%;max-height:100%"></div>
+  <div class="shot" style="margin-top:12px;height:600px;display:flex;align-items:center;justify-content:center;background:#fff"><img src="../자료/도구캡처/ERD_전체_키만.png" style="width:auto;max-width:100%;max-height:100%"></div>
   <div class="cap">전체 구조 조감도 — PK·FK·UK 만 표시했습니다. 컬럼·타입 전체는 22쪽 그룹별 ERD와 <code>DB.dbml</code> 에 있습니다.</div>
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:10px">
     <div class="point" style="font-size:17px"><b>M:N 해소</b> 시도↔문항 <code>attempt_questions</code> · 답안↔보기 <code>answer_selections</code> · 코스↔채점규칙 <code>scenario_rules</code> · AI작업↔조문 <code>ai_citations</code></div>
@@ -614,7 +614,7 @@
   </div>
   <table class="t s" style="margin-top:24px">
     <tr><th style="width:280px">구분</th><th>내용</th></tr>
-    <tr><td>검증한 것</td><td>백엔드 14 · 프런트 21 테스트 통과 · 타입 검사·빌드 성공 · 실제 응답 53건을 명세와 대조해 불일치 0 · DBML 파싱 오류 0 · 실제 LLM 해설·리포트 화면 확인 · 센서 시리얼 직독으로 50Hz·잡음 0.088° 측정</td></tr>
+    <tr><td>검증한 것</td><td>백엔드 17 · 프런트 22 테스트 통과 · 타입 검사·빌드 성공 · 실제 응답 53건을 명세와 대조해 불일치 0 · DBML 파싱 오류 0 · 실제 LLM 해설·리포트 화면 확인 · 센서 시리얼 직독으로 50Hz·잡음 0.088° 측정</td></tr>
     <tr><td>아직 못 한 것</td><td>센서 좌·우 방향(반전 여부) 확정 · 브라우저 Web Serial 정렬 절차 완주 · 공식 문제은행 이용 조건 · 속도 경계와 정지선이 겹칠 때의 판정</td></tr>
     <tr><td>다음 단계</td><td>roll 과 pitch 로 핸들 각도를 복원해 장착 각도에 안 흔들리게 만들기 → 검증한 항목부터 자동 채점(A) 켜기 → 공식 문항 검수 후 모의고사 → PostgreSQL 전환과 배포</td></tr>
   </table></div>
@@ -793,7 +793,7 @@
     <div><div class="shot crop" style="height:215px"><img src="../자료/캡처/C-21_AI리포트.png"></div><div class="cap"><b>5. AI 리포트</b> 다음 연습</div></div>
   </div>
   <table class="t s" style="margin-top:20px">
-    <tr><th style="width:110px">시간</th><th style="width:230px">단계</th><th>짚을 것</th></tr>
+    <tr><th style="width:190px">시간</th><th style="width:230px">단계</th><th>짚을 것</th></tr>
     <tr><td><b>0:00~0:15</b></td><td>필기 풀이 · 오답 해설</td><td>제출 전에는 정답을 내려보내지 않습니다. 제출하면 검수 해설과 근거 조문이 함께 열립니다.</td></tr>
     <tr><td><b>0:15~0:30</b></td><td>출발 전 점검 · 기본조작 연습장</td><td>네 키를 한 번씩 눌러 READY 를 만듭니다. 기본조작 연습장에서 직선·S자를 지나 전진 정차하고, 후진으로 뒤 구역에 다시 정차합니다.</td></tr>
     <tr><td><b>0:30~0:45</b></td><td>도로주행 A코스</td><td>신호와 어린이보호구역을 지납니다. 실격 사유가 떠도 주행을 끊지 않고 쌓습니다.</td></tr>
@@ -818,7 +818,7 @@
         <div class="point" style="font-size:20px"><b>과거 기록은 덮지 않습니다</b> 다시 하면 새 기록입니다. 문항·코스·출처도 고칠 때 새 버전을 붙입니다.</div>
       </div>
     </div>
-    <div><div class="shot crop" style="height:430px"><img src="../자료/캡처/C-18_주행_결과.png"></div><div class="cap">S-12 주행 결과 — 서버 재생 검증 일치, 경로와 사건 위치 재현</div></div>
+    <div><div class="shot crop" style="max-height:430px"><img src="../자료/캡처/C-18_주행_결과.png"></div><div class="cap">S-12 주행 결과 — 서버 재생 검증 일치, 경로와 사건 위치 재현</div></div>
   </div></div>
   <div class="foot"><span>본문 18쪽 요약 · 두 엔진은 골든 기록으로 교차 검증</span><span class="pg"></span></div>
 </section>
@@ -828,7 +828,7 @@
   <div class="h2">정답은 데이터가, 설명만 AI 가</div>
   
   <div class="fillbody"><div class="ui" style="grid-template-columns:1fr 1fr;margin-top:30px">
-    <div><div class="shot crop" style="height:430px"><img src="../자료/캡처/C-10_AI오답해설.png"></div><div class="cap">S-08 오답 해설 — 검수 해설·근거 조문 위에 AI 설명</div></div>
+    <div><div class="shot crop" style="max-height:430px"><img src="../자료/캡처/C-10_AI오답해설.png"></div><div class="cap">S-08 오답 해설 — 검수 해설·근거 조문 위에 AI 설명</div></div>
     <div>
       <div class="sub" style="font-size:23px;line-height:1.8">
         AI 에 들어가는 것은 서버가 만든 스냅샷뿐입니다.<br>
@@ -860,7 +860,7 @@
       <div class="cap">DB.dbml → ERD · PK/FK 명시 · M:N 은 연결 테이블 4개로 해소 · 타입과 제약을 컬럼 Note 에</div>
     </div>
     <div>
-      <div class="shot crop" style="height:250px"><img src="../자료/도구캡처/Swagger_API목록.png"></div>
+      <div class="shot crop" style="max-height:250px"><img src="../자료/도구캡처/Swagger_API목록.png"></div>
       <div class="cap">API.yml → Swagger UI · 24경로 27동작 · 400·401·403·404·409 정의 · 공통 스키마 <code>$ref</code> 재사용</div>
     </div>
   </div>
