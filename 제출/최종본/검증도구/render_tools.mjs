@@ -15,14 +15,16 @@ function mermaid(tables, withCols, extraTables = []) {
   for (const t of tables) {
     s += `  ${t.name} {\n`;
     const cpk = pkComposite(t);
+    let rows = 0;
     for (const f of t.fields) {
       const keys = [];
       if (f.pk || cpk.includes(f.name)) keys.push('PK');
       if (fkOf.has(`${t.name}.${f.name}`)) keys.push('FK');
       if (f.unique && !f.pk) keys.push('UK');
       const typ = f.type.type_name.replace(/\((\d+)\)/, '($1)').replace(/[^A-Za-z0-9_()]/g, '_');
-      if (withCols || keys.length) s += `    ${typ} ${f.name}${keys.length ? ' ' + keys.join(',') : ''}\n`;
+      if (withCols || keys.length) { s += `    ${typ} ${f.name}${keys.length ? ' ' + keys.join(',') : ''}\n`; rows++; }
     }
+    if (!rows) s += '    uuid id PK\n';   // 키가 하나도 없는 표는 mermaid 가 빈 블록을 거부한다
     s += '  }\n';
   }
   for (const n of extraTables) s += `  ${n} {\n    uuid id PK\n  }\n`;
@@ -38,7 +40,11 @@ function mermaid(tables, withCols, extraTables = []) {
   }
   return s;
 }
-const diagrams = { 'ERD_전체': mermaid(db.tables, true) };
+const diagrams = {
+  'ERD_전체': mermaid(db.tables, true),
+  // 20쪽 조감도용. 전체 20테이블을 컬럼까지 넣으면 슬라이드에서 글자가 뭉개져 키(PK/FK/UK)만 남긴다.
+  'ERD_전체_키만': '%%{init:{"er":{"fontSize":18}}}%%\n' + mermaid(db.tables, false),
+};
 for (const g of db.tableGroups) {
   const tabs = g.tables.map(x => db.tables.find(t => t.name === (x.tableName ?? x.name)));
   const names = new Set(tabs.map(t => t.name));

@@ -1,0 +1,116 @@
+erDiagram
+  users {
+    uuid id PK
+    varchar(254) email UK
+  }
+  auth_sessions {
+    uuid id PK
+    uuid user_id FK
+    char(64) token_hash UK
+  }
+  idempotency_keys {
+    uuid id PK
+    uuid user_id FK
+  }
+  official_sources {
+    uuid id PK
+  }
+  source_chunks {
+    uuid id PK
+    uuid source_id FK
+  }
+  guide_steps {
+    uuid id PK
+    uuid source_id FK
+  }
+  categories {
+    varchar(30) id PK
+  }
+  questions {
+    uuid id PK
+    uuid source_id FK
+    uuid chunk_id FK
+    varchar(30) category_id FK
+  }
+  question_options {
+    uuid id PK
+    uuid question_id FK
+  }
+  written_attempts {
+    uuid id PK
+    uuid user_id FK
+  }
+  attempt_questions {
+    uuid id PK
+    uuid attempt_id FK
+    uuid question_id FK
+  }
+  written_answers {
+    uuid id PK
+    uuid attempt_question_id FK,UK
+  }
+  answer_selections {
+    uuid answer_id PK,FK
+    uuid option_id PK,FK
+  }
+  official_scoring_rules {
+    uuid id PK
+    uuid source_id FK
+    varchar(30) category_id FK
+  }
+  scenarios {
+    uuid id PK
+  }
+  scenario_rules {
+    uuid scenario_id PK,FK
+    uuid rule_id PK,FK
+    varchar(40) event_code PK
+  }
+  training_sessions {
+    uuid id PK
+    uuid user_id FK
+    uuid scenario_id FK
+  }
+  driving_events {
+    uuid id PK
+    uuid session_id FK
+    uuid rule_id FK
+    varchar(30) category_id FK
+  }
+  ai_jobs {
+    uuid id PK
+    uuid user_id FK
+    uuid answer_id FK
+  }
+  ai_citations {
+    uuid id PK
+    uuid job_id FK
+    uuid chunk_id FK
+  }
+  users ||--o{ auth_sessions : "user_id"
+  users ||--o{ idempotency_keys : "user_id"
+  official_sources ||--o{ source_chunks : "source_id"
+  official_sources ||--o{ guide_steps : "source_id"
+  official_sources ||--o{ questions : "source_id"
+  source_chunks ||--o{ questions : "chunk_id"
+  categories ||--o{ questions : "category_id"
+  questions ||--o{ question_options : "question_id"
+  users ||--o{ written_attempts : "user_id"
+  written_attempts ||--o{ attempt_questions : "attempt_id"
+  questions ||--o{ attempt_questions : "question_id"
+  attempt_questions ||--o| written_answers : "attempt_question_id"
+  written_answers ||--o{ answer_selections : "answer_id"
+  question_options ||--o{ answer_selections : "option_id"
+  official_sources ||--o{ official_scoring_rules : "source_id"
+  categories ||--o{ official_scoring_rules : "category_id"
+  scenarios ||--o{ scenario_rules : "scenario_id"
+  official_scoring_rules ||--o{ scenario_rules : "rule_id"
+  users ||--o{ training_sessions : "user_id"
+  scenarios ||--o{ training_sessions : "scenario_id"
+  training_sessions ||--o{ driving_events : "session_id"
+  official_scoring_rules ||--o{ driving_events : "rule_id"
+  categories ||--o{ driving_events : "category_id"
+  users ||--o{ ai_jobs : "user_id"
+  written_answers ||--o{ ai_jobs : "answer_id"
+  ai_jobs ||--o{ ai_citations : "job_id"
+  source_chunks ||--o{ ai_citations : "chunk_id"

@@ -436,22 +436,14 @@
 <section class="slide pad">
   <div class="eyebrow">05 데이터 모델 설계 · ERD</div>
   <div class="h2" style="font-size:40px">화면과 API가 쓰는 데이터를 20개 테이블로 설계했습니다</div>
-  <div class="ui" style="grid-template-columns:960px 1fr">
-    <div class="shot" style="height:800px;display:flex;align-items:center;justify-content:center;background:#fff"><img src="../자료/도구캡처/ERD_전체.png" style="width:auto;max-width:100%;max-height:100%"></div>
-    <div>
-      <div class="grid" style="grid-template-columns:repeat(2,1fr);gap:14px">
-        <div class="card" style="padding:16px 22px"><div class="big" style="font-size:48px">20<small>테이블</small></div></div>
-        <div class="card" style="padding:16px 22px"><div class="big" style="font-size:48px">27<small>FK 관계</small></div></div>
-        <div class="card" style="padding:16px 22px"><div class="big" style="font-size:48px">15<small>Enum</small></div></div>
-        <div class="card" style="padding:16px 22px"><div class="big" style="font-size:48px">4<small>M:N 연결</small></div></div>
-      </div>
-      <div style="display:grid;gap:12px;margin-top:18px">
-        <div class="point"><b>M:N 해소</b> 시도↔문항 <code>attempt_questions</code> · 답안↔보기 <code>answer_selections</code> · 코스↔채점규칙 <code>scenario_rules</code> · AI작업↔조문 <code>ai_citations</code></div>
-        <div class="point"><b>버전 보존</b> 문항·코스·출처는 <code>(code, version)</code> UNIQUE, 수정 대신 새 버전 추가 → 과거 결과 유지</div>
-        <div class="point"><b>상태 무결성</b> 제출 ⇔ 점수 NOT NULL, 센서 모드 ⇔ 보정값 NOT NULL, 해설 작업 ⇔ answer_id, 감점 ⇔ 점수 &gt; 0</div>
-        <div class="point"><b>보안·재시도</b> 비밀번호·세션 토큰은 해시만 저장, <code>idempotency_keys</code>로 같은 요청 재처리 방지</div>
-      </div>
-    </div>
+  <div style="margin-top:10px;font-size:26px;font-weight:800;color:var(--green)">20 <span style="color:var(--body);font-size:20px;font-weight:700">테이블</span> · 27 <span style="color:var(--body);font-size:20px;font-weight:700">FK 관계</span> · 15 <span style="color:var(--body);font-size:20px;font-weight:700">Enum</span> · 4 <span style="color:var(--body);font-size:20px;font-weight:700">M:N 연결</span></div>
+  <div class="shot" style="margin-top:12px;height:636px;display:flex;align-items:center;justify-content:center;background:#fff"><img src="../자료/도구캡처/ERD_전체_키만.png" style="width:auto;max-width:100%;max-height:100%"></div>
+  <div class="cap">전체 구조 조감도 — PK·FK·UK 만 표시했습니다. 컬럼·타입 전체는 21쪽 그룹별 ERD와 <code>DB.dbml</code> 에 있습니다.</div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:10px">
+    <div class="point" style="font-size:17px"><b>M:N 해소</b> 시도↔문항 <code>attempt_questions</code> · 답안↔보기 <code>answer_selections</code> · 코스↔채점규칙 <code>scenario_rules</code> · AI작업↔조문 <code>ai_citations</code></div>
+    <div class="point" style="font-size:17px"><b>버전 보존</b> 문항·코스·출처는 <code>(code, version)</code> UNIQUE, 수정 대신 새 버전 추가 → 과거 결과 유지</div>
+    <div class="point" style="font-size:17px"><b>상태 무결성</b> 제출 ⇔ 점수 NOT NULL, 센서 모드 ⇔ 보정값 NOT NULL, 해설 작업 ⇔ answer_id, 감점 ⇔ 점수 &gt; 0</div>
+    <div class="point" style="font-size:17px"><b>보안·재시도</b> 비밀번호·세션 토큰은 해시만 저장, <code>idempotency_keys</code>로 같은 요청 재처리 방지</div>
   </div>
   <div class="foot"><span>9반_P286_김진수_전진만할게요-DB.dbml · @dbml/core 파싱 오류 0 · 이미지는 DBML에서 로컬 렌더링(mermaid)</span><span>20</span></div>
 </section>

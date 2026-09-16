@@ -17,10 +17,11 @@ AI 웹 서비스 설계 Mini-project (SKALA 9반) 산출물입니다.
 
 | 파일 | 내용 |
 |---|---|
-| `9반_P286_김진수_전진만할게요-개요.pdf` | 프로젝트 기술서 초안 25쪽 (원본 `개요PDF/slides.html`) |
+| `9반_P286_김진수_전진만할게요-개요.pdf` | 프로젝트 기술서 25쪽 (원본 `개요PDF/slides.html`) |
 | `9반_P286_김진수_전진만할게요-API.yml` | OpenAPI 3.0.3 · 24경로 27동작 |
 | `9반_P286_김진수_전진만할게요-DB.dbml` | DBML · 20테이블 27관계 |
 | `체크리스트.md` | 제출 전 확인 항목 · 평가 대응 · 검증 재실행 방법 |
+| `발표대본.md` | 발표용 대본 (슬라이드별 시각 배분, 약 4분 40초) |
 
 명세는 실제 서버 코드 기준이며, 실제 응답 53건을 명세 스키마로 대조해 불일치 0을 확인했습니다.
 
@@ -68,7 +69,7 @@ cd web/backend && ./.venv/bin/python -m pytest -q
 cd web/frontend && npm run typecheck && npm test && npm run build
 ```
 
-최근 결과(2026-09-16): pytest 14 passed · vitest 20 passed · 타입 검사 오류 0 · 빌드 성공(Three.js 번들 500kB 경고, 동작에는 영향 없음).
+최근 결과(2026-09-16): pytest 14 passed · vitest 20 passed · 타입 검사 오류 0 · 빌드 성공(주 번들 837kB 로 Vite 의 500kB 경고 임계값 초과 — Three.js 포함, 동작에는 영향 없음).
 **센서 좌우 방향·민감도 실측은 아직 확인하지 않았습니다.**
 
 ## 폴더
