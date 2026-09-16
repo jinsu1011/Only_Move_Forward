@@ -63,7 +63,8 @@ function strip(
     }
     if (index < samples.length - 1) {
       const i = index * 2
-      indices.push(i, i + 2, i + 1, i + 1, i + 2, i + 3)
+      // World Z is -course Y: wind the road triangles upward (+Y).
+      indices.push(i, i + 1, i + 2, i + 1, i + 3, i + 2)
     }
   })
   const geometry = new THREE.BufferGeometry()
@@ -80,17 +81,11 @@ function courseLine(parent: THREE.Object3D, sim: Sim, offset: number, color: num
   for (let index = 0; index < sim.cum.length - 1; index += step) {
     if (dashed && Math.floor(index / step) % 2) continue
     const endIndex = Math.min(index + step, sim.cum.length - 1)
-    const a = courseToWorld(sim, sim.cum[index], offset)
-    const b = courseToWorld(sim, sim.cum[endIndex], offset)
-    const dx = b.x - a.x
-    const dz = -(b.y - a.y)
-    const length = Math.hypot(dx, dz)
-    if (length < 0.05) continue
-    const line = new THREE.Mesh(new THREE.BoxGeometry(length, 0.018, 0.11), standard(color, 0.65))
-    const lift = (elevationAt(sim.d, sim.cum[index]) + elevationAt(sim.d, sim.cum[endIndex])) / 2
-    line.position.set((a.x + b.x) / 2, 0.035 + lift, -(a.y + b.y) / 2)
-    line.rotation.y = Math.atan2(-dz, dx)
-    parent.add(line)
+    // Use the road's samples and slope so markings do not intersect the ramp.
+    parent.add(strip(
+      sim, offset - 0.055, offset + 0.055, standard(color, 0.65),
+      0.035, sim.cum[index], sim.cum[endIndex],
+    ))
   }
 }
 
