@@ -217,7 +217,7 @@
   </div>
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:22px">
     <div class="point" style="font-size:18px"><b>부품</b> Arduino UNO + MPU-6050(GY-521) · I2C 4선. 모터나 별도 전원이 없어 USB 하나로 동작한다</div>
-    <div class="point" style="font-size:18px"><b>출력</b> 115200 baud 로 <code>WME,경과ms,roll,pitch,yaw</code> 를 50Hz 로 보낸다. 시작할 때 자이로 영점을 2초 잡고 <code>INFO,READY</code></div>
+    <div class="point" style="font-size:18px"><b>출력</b> 115200 baud 로 <code>WME,경과ms,roll,pitch,yaw</code> 를 50Hz 로 보낸다. 시작할 때 자이로 영점을 2초 잡고 <code>INFO,READY</code>. <b>WME</b> 는 이 펌웨어가 쓰는 시리얼 메시지 접두사일 뿐이고 서비스 로직과는 무관하다</div>
     <div class="point" style="font-size:18px"><b>실측</b> 2026-09-16 시리얼 직독 — 주기 20.0ms(50.0Hz), 정지 시 roll 잡음 표준편차 0.088°</div>
   </div></div>
   <div class="foot"><span>펌웨어 <code>hardware/firmware/wme_sensor</code> · 센서는 선택 입력이고 키보드만으로도 모든 기능을 쓴다</span><span class="pg"></span></div>
@@ -492,7 +492,7 @@
   
   <div class="fillbody"><div style="margin-top:10px;font-size:26px;font-weight:800;color:var(--green)">20 <span style="color:var(--body);font-size:20px;font-weight:700">테이블</span> · 27 <span style="color:var(--body);font-size:20px;font-weight:700">FK 관계</span> · 15 <span style="color:var(--body);font-size:20px;font-weight:700">Enum</span> · 4 <span style="color:var(--body);font-size:20px;font-weight:700">M:N 연결</span></div>
   <div class="shot" style="margin-top:12px;height:636px;display:flex;align-items:center;justify-content:center;background:#fff"><img src="../자료/도구캡처/ERD_전체_키만.png" style="width:auto;max-width:100%;max-height:100%"></div>
-  <div class="cap">전체 구조 조감도 — PK·FK·UK 만 표시했습니다. 컬럼·타입 전체는 21쪽 그룹별 ERD와 <code>DB.dbml</code> 에 있습니다.</div>
+  <div class="cap">전체 구조 조감도 — PK·FK·UK 만 표시했습니다. 컬럼·타입 전체는 22쪽 그룹별 ERD와 <code>DB.dbml</code> 에 있습니다.</div>
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:10px">
     <div class="point" style="font-size:17px"><b>M:N 해소</b> 시도↔문항 <code>attempt_questions</code> · 답안↔보기 <code>answer_selections</code> · 코스↔채점규칙 <code>scenario_rules</code> · AI작업↔조문 <code>ai_citations</code></div>
     <div class="point" style="font-size:17px"><b>버전 보존</b> 문항·코스·출처는 <code>(code, version)</code> UNIQUE, 수정 대신 새 버전 추가 → 과거 결과 유지</div>
@@ -702,7 +702,7 @@
   <div class="fillbody"><table class="t" style="margin-top:28px">
     <tr><th style="width:330px">문제</th><th style="width:250px">해결 기능</th><th>핵심 설계</th></tr>
     <tr><td>왜 틀렸는지 모른 채 같은 주제를 반복해 틀린다</td><td><b>필기 연습 · 오답 해설</b></td><td>제출 전에는 정답을 응답에 담지 않음 · 검수 해설과 근거 조문 · AI 는 설명만</td></tr>
-    <tr><td>실격 사유를 실제 주행 전에 겪을 기회가 없다</td><td><b>기능 · 도로주행 시뮬레이션</b></td><td>장내기능 코스와 도심 A코스 · 별표26 항목에 연결된 연습 판정 · 사건을 끊지 않고 누적</td></tr>
+    <tr><td>실격 사유를 실제 주행 전에 겪을 기회가 없다</td><td><b>기본조작 · 도로주행 시뮬레이션</b></td><td>기본조작 연습장과 도심 도로주행 A코스 · 별표26 항목에 연결된 연습 판정 · 사건을 끊지 않고 누적</td></tr>
     <tr><td>필기 약점과 주행 실수를 함께 볼 방법이 없다</td><td><b>AI 통합 리포트</b></td><td>서버가 계산한 숫자만 AI 에 전달 · 응답의 수치와 근거를 서버가 재검사</td></tr>
   </table>
   <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:24px">
@@ -719,14 +719,14 @@
   <div class="fillbody"><table class="t s" style="margin-top:20px">
     <tr><th style="width:190px">액터</th><th style="width:330px">주요 기능</th><th style="width:150px">화면</th><th>API</th></tr>
     <tr><td><b>방문자</b><br><span class="muted" style="font-size:15px">비로그인 사용자</span></td><td>면허 절차 안내 · 회원가입</td><td>S-01 · S-02</td><td><span class="m get">GET</span> /guide · <span class="m get">GET</span> /auth/csrf · <span class="m post">POST</span> /auth/signup</td></tr>
-    <tr><td><b>학습자</b><br><span class="muted" style="font-size:15px">사용자</span></td><td>필기 연습·제출·오답 확인 · 주행 연습 · AI 해설·리포트 요청</td><td>S-03 ~ S-13<br>(화면 13개)</td><td><span class="m get">GET</span> /dashboard · <span class="m post">POST</span> /written/attempts · <span class="m put">PUT</span> …/answers/{id} · <span class="m post">POST</span> /training/sessions · <span class="m post">POST</span> /ai/jobs</td></tr>
+    <tr><td><b>학습자</b><br><span class="muted" style="font-size:15px">사용자</span></td><td>필기 연습·제출·오답 확인 · 주행 연습 · AI 해설·리포트 요청</td><td>S-03 ~ S-13<br>(전체 13개 중 학습자 흐름 11개)</td><td><span class="m get">GET</span> /dashboard · <span class="m post">POST</span> /written/attempts · <span class="m put">PUT</span> …/answers/{id} · <span class="m post">POST</span> /training/sessions · <span class="m post">POST</span> /ai/jobs</td></tr>
     <tr><td><b>LLM 서비스</b><br><span class="muted" style="font-size:15px">외부 시스템</span></td><td>오답 설명 생성 · 리포트 서술 생성</td><td>S-08 · S-13</td><td>서버가 만든 스냅샷만 입력. 인용 ID·수치는 서버가 재검사, 실패하면 규칙 기반 요약</td></tr>
     <tr><td><b>센서 핸들</b><br><span class="muted" style="font-size:15px">외부 장치 · 선택</span></td><td>roll 기울기로 좌/중앙/우 조향 (50Hz)</td><td>S-10 · S-11</td><td>브라우저 Web Serial 직통 · <b>서버 API 없음</b> · 정렬 결과만 세션에 저장</td></tr>
   </table>
   <div class="point" style="margin-top:22px;font-size:20px">
-    기능 요구사항 <b>18개</b>를 전부 화면 ID 와 API 경로에 붙여 두었습니다(본문 8쪽). 화면에 없는 기능도, 기능에 없는 화면도 없습니다.
+    기능 요구사항 <b>18개</b>를 전부 화면 ID 와 API 경로에 붙여 두었습니다(본문 9쪽). 화면에 없는 기능도, 기능에 없는 화면도 없습니다.
   </div></div>
-  <div class="foot"><span>본문 7·8쪽 요약 · 경로는 서버 기본 경로 /api/v1 기준</span><span class="pg"></span></div>
+  <div class="foot"><span>본문 7·9쪽 요약 · 경로는 서버 기본 경로 /api/v1 기준</span><span class="pg"></span></div>
 </section>
 
 <section class="slide pad">
@@ -749,7 +749,7 @@
   </div>
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:22px">
     <div class="point" style="font-size:19px"><b>부품</b> Arduino UNO + MPU-6050 · I2C 4선. 모터도 별도 전원도 없습니다</div>
-    <div class="point" style="font-size:19px"><b>출력</b> 115200 baud 로 <code>WME,경과ms,roll,pitch,yaw</code> 를 50Hz</div>
+    <div class="point" style="font-size:19px"><b>출력</b> 115200 baud 로 <code>WME,경과ms,roll,pitch,yaw</code> 를 50Hz. <code>WME</code> 는 펌웨어의 시리얼 메시지 접두사이며 서비스 로직과 무관합니다</div>
     <div class="point" style="font-size:19px"><b>실측</b> 주기 20.0ms(50.0Hz) · 정지 시 잡음 표준편차 0.088°</div>
   </div></div>
   <div class="foot"><span>본문 8쪽 요약 · 센서는 선택 입력이고 키보드만으로도 모든 기능을 씁니다</span><span class="pg"></span></div>
@@ -772,34 +772,34 @@
     <span class="node ai">S-13 리포트</span>
   </div>
   <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:24px">
-    <div class="card"><h4>화면 구성 요소를 화면마다 적었습니다</h4><p>버튼 · 입력 필드 · 표시 데이터 · 이동 경로 · 호출 API 를 본문 10~18쪽에 화면별로 나눠 두었습니다.</p></div>
-    <div class="card"><h4>예외도 흐름 안에 넣었습니다</h4><p>입력 오류 · 세션 만료 · 보안 토큰 불일치 · 저장 실패 · 센서 단절 · AI 실패. 화면 동작과 서버 응답을 짝지어 본문 19쪽에 표로 정리했습니다.</p></div>
+    <div class="card"><h4>화면 구성 요소를 화면마다 적었습니다</h4><p>버튼 · 입력 필드 · 표시 데이터 · 이동 경로 · 호출 API 를 본문 11~19쪽에 화면별로 나눠 두었습니다.</p></div>
+    <div class="card"><h4>예외도 흐름 안에 넣었습니다</h4><p>입력 오류 · 세션 만료 · 보안 토큰 불일치 · 저장 실패 · 센서 단절 · AI 실패. 화면 동작과 서버 응답을 짝지어 본문 20쪽에 표로 정리했습니다.</p></div>
   </div>
   <div class="point" style="margin-top:20px;font-size:21px">
-    <b>UI ↔ API 필드 일치</b> 화면에 뜨는 값이 어느 API 필드와 어느 테이블 컬럼에서 오는지 본문 22쪽에 대응표로 붙였습니다.
+    <b>UI ↔ API 필드 일치</b> 화면에 뜨는 값이 어느 API 필드와 어느 테이블 컬럼에서 오는지 본문 23쪽에 대응표로 붙였습니다.
   </div></div>
-  <div class="foot"><span>본문 9~19·22쪽 요약</span><span class="pg"></span></div>
+  <div class="foot"><span>본문 10~19·23쪽 요약</span><span class="pg"></span></div>
 </section>
 
 <section class="slide pad" style="padding-top:44px">
   <div class="eyebrow">DEMO · 시연 순서</div>
-  <div class="h2" style="font-size:40px">필기 → 실기 → 도로주행 → 결과 → 리포트</div>
+  <div class="h2" style="font-size:40px">필기 → 기본조작 → 도로주행 → 결과 → 리포트</div>
   
   <div class="fillbody"><div class="ui" style="grid-template-columns:repeat(5,1fr);margin-top:22px;gap:16px">
     <div><div class="shot crop" style="height:215px"><img src="../자료/캡처/C-06_필기_문제풀이.png"></div><div class="cap"><b>1. 필기</b> 고를 때마다 저장</div></div>
     <div><div class="shot crop" style="height:215px"><img src="../자료/캡처/C-14_키보드_READY.png"></div><div class="cap"><b>2. 출발 전 점검</b> READY 전엔 출발 못 함</div></div>
-    <div><div class="shot crop" style="height:215px"><img src="../자료/캡처/C-19_기본조작_진행.png"></div><div class="cap"><b>3. 실기</b> 기본조작 연습장</div></div>
+    <div><div class="shot crop" style="height:215px"><img src="../자료/캡처/C-19_기본조작_진행.png"></div><div class="cap"><b>3. 기본조작</b> 전진·후진 정차</div></div>
     <div><div class="shot crop" style="height:215px"><img src="../자료/캡처/C-16_도로주행_진행.png"></div><div class="cap"><b>4. 도로주행</b> 사건 누적</div></div>
     <div><div class="shot crop" style="height:215px"><img src="../자료/캡처/C-21_AI리포트.png"></div><div class="cap"><b>5. AI 리포트</b> 다음 연습</div></div>
   </div>
   <table class="t s" style="margin-top:20px">
     <tr><th style="width:110px">시간</th><th style="width:230px">단계</th><th>짚을 것</th></tr>
     <tr><td><b>0:00~0:15</b></td><td>필기 풀이 · 오답 해설</td><td>제출 전에는 정답을 내려보내지 않습니다. 제출하면 검수 해설과 근거 조문이 함께 열립니다.</td></tr>
-    <tr><td><b>0:15~0:30</b></td><td>출발 전 점검 · 실기 코스</td><td>네 키를 한 번씩 눌러 READY. 기본조작으로 전진·후진 정차를 익히고, 장내기능 코스에서는 경사로 정지와 직각주차 후진까지 합니다.</td></tr>
+    <tr><td><b>0:15~0:30</b></td><td>출발 전 점검 · 기본조작 연습장</td><td>네 키를 한 번씩 눌러 READY 를 만듭니다. 기본조작 연습장에서 직선·S자를 지나 전진 정차하고, 후진으로 뒤 구역에 다시 정차합니다.</td></tr>
     <tr><td><b>0:30~0:45</b></td><td>도로주행 A코스</td><td>신호와 어린이보호구역을 지납니다. 실격 사유가 떠도 주행을 끊지 않고 쌓습니다.</td></tr>
     <tr><td><b>0:45~1:00</b></td><td>주행 결과 · AI 리포트</td><td>서버가 다시 재생해 확정한 사건만 남습니다. 리포트에서 약한 주제를 누르면 그 연습으로 넘어갑니다.</td></tr>
   </table></div>
-  <div class="foot"><span>약 1분 · 캡처는 실제 화면 · 시연이 막히면 본문 10~18쪽 캡처로 대신합니다</span><span class="pg"></span></div>
+  <div class="foot"><span>약 1분 · 캡처는 실제 화면 · 시연이 막히면 본문 11~19쪽 캡처로 대신합니다</span><span class="pg"></span></div>
 </section>
 
 <section class="slide pad">
@@ -820,7 +820,7 @@
     </div>
     <div><div class="shot crop" style="height:430px"><img src="../자료/캡처/C-18_주행_결과.png"></div><div class="cap">S-12 주행 결과 — 서버 재생 검증 일치, 경로와 사건 위치 재현</div></div>
   </div></div>
-  <div class="foot"><span>본문 17쪽 요약 · 두 엔진은 골든 기록으로 교차 검증</span><span class="pg"></span></div>
+  <div class="foot"><span>본문 18쪽 요약 · 두 엔진은 골든 기록으로 교차 검증</span><span class="pg"></span></div>
 </section>
 
 <section class="slide pad">
@@ -840,7 +840,7 @@
       </div>
     </div>
   </div></div>
-  <div class="foot"><span>본문 14·18쪽 요약</span><span class="pg"></span></div>
+  <div class="foot"><span>본문 15·19쪽 요약</span><span class="pg"></span></div>
 </section>
 
 <section class="slide pad" style="padding-top:44px">
@@ -868,7 +868,7 @@
     명세를 쓰고 끝내지 않았습니다. 서버를 실제로 띄워 <b>27개 동작을 전부 호출하고 응답 53건을 명세와 대조</b>했습니다.
     명세에 없는 필드가 섞여 있으면 실패로 처리했고, 지금 불일치는 0 입니다.
   </div></div>
-  <div class="foot"><span>본문 20~24쪽 요약</span><span class="pg"></span></div>
+  <div class="foot"><span>본문 21~25쪽 요약</span><span class="pg"></span></div>
 </section>
 
 <section class="slide pad">
@@ -889,12 +889,12 @@
       <div style="display:grid;gap:13px">
         <div class="point" style="font-size:20px"><b>검증한 항목부터 자동 채점(A) 활성화</b> 지금은 0개입니다. 공식 채점과 같은 방식으로 확인한 항목부터 올립니다.</div>
         <div class="point" style="font-size:20px"><b>공식 문항 검수 후 모의고사 개방</b> 이용 조건과 정답 검수를 마친 뒤 엽니다.</div>
-        <div class="point" style="font-size:20px"><b>센서 조향각 복원</b> roll 과 pitch 를 함께 써서 장착 각도와 무관하게 만듭니다. 실측으로 효과를 확인했습니다.</div>
+        <div class="point" style="font-size:20px"><b>센서 조향각 복원</b> roll 과 pitch 를 함께 써서 장착 각도 변화에 덜 민감하게 만들고, 이후 실측으로 효과를 검증합니다.</div>
         <div class="point" style="font-size:20px"><b>PostgreSQL 전환과 배포</b></div>
       </div>
     </div>
   </div></div>
-  <div class="foot"><span>본문 25쪽 요약 · 9반 P286 김진수</span><span class="pg"></span></div>
+  <div class="foot"><span>본문 26쪽 요약 · 9반 P286 김진수</span><span class="pg"></span></div>
 </section>
 
 <section class="slide cover">
