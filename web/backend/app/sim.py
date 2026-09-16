@@ -14,6 +14,9 @@ import math
 SIM_VERSION = "sim-1.0.0"
 TICK_HZ = 30
 
+GRAVITY = 9.81  # m/s^2
+STATIC_HOLD = 0.35  # m/s^2 미만의 경사는 정지 상태에서 굴러가지 않는다(주차 브레이크 대용)
+
 PHYS = {
     "accel": 2.8,  # m/s^2 (Space)
     "brake": 6.0,  # m/s^2 (입력 없음·동시 입력·반대 방향)
@@ -181,11 +184,22 @@ class Sim:
         a = p["accel"] / TICK_HZ
         b = p["brake"] / TICK_HZ
         if throttle == 1:
-            v = min(0.0, v + b) if v < 0 else min(p["max_fwd"], v + a)
+            # 뒤로 밀리는 중이면 먼저 제동력으로 잡고, 0 을 지나면 그대로 전진 가속한다.
+            # 0 에서 끊으면 경사로에서 영영 출발하지 못한다.
+            v = min(p["max_fwd"], v + (b if v < 0 else a))
         elif throttle == -1:
-            v = max(0.0, v - b) if v > 0 else max(-p["max_rev"], v - a)
+            v = max(-p["max_rev"], v - (b if v > 0 else a))
         else:
             v = max(0.0, v - b) if v > 0 else min(0.0, v + b)
+
+        # 경사로: 중력의 진행 방향 성분. 오르막에서 가속을 놓으면 뒤로 밀린다.
+        # 정지 상태에서 경사가 완만하면 굴러가지 않도록 정지 마찰만큼은 버틴다.
+        g = grade_at(self.d, self.s)
+        if g:
+            slope_a = -GRAVITY * math.sin(math.atan(g)) / TICK_HZ
+            if abs(v) < 1e-6 and abs(slope_a) * TICK_HZ < STATIC_HOLD:
+                slope_a = 0.0
+            v += slope_a
 
         yaw = v / p["wheelbase"] * (-st) * p["max_steer"]
         h = self.h + yaw / TICK_HZ
@@ -361,6 +375,15 @@ class Sim:
                     return
                 self._emit("STAGE_CLEAR", False, {"stage": self.stage, "label": stg.get("label", "")})
 
+        # 8-1) 피니시 라인 — 선을 넘으면 그 자리에서 끝난다.
+        # 과제를 다 못 했으면 완주로 치지 않는다(미완료로 남는다).
+        finish_s = d.get("finish_s")
+        if finish_s is not None and s >= finish_s:
+            done = self.stage >= len(stages)
+            self._emit("COURSE_COMPLETE" if done else "FINISH_LINE_EARLY", True,
+                       {"stages_done": self.stage, "stages": len(stages)})
+            return
+
         # 9) 제한 시간
         if self.tick >= d["time_limit_s"] * TICK_HZ:
             self._emit("TIME_LIMIT", True, {"time_limit_s": d["time_limit_s"]})
@@ -381,6 +404,29 @@ def replay(definition: dict, inputs: list[list[int]], total_ticks: int) -> Sim:
 
 
 # ---- 코스 생성 (시드에서 한 번 계산해 저장) ----
+def grade_at(definition: dict, s: float) -> float:
+    """코스 s 지점의 경사(상승/수평거리). 오르막이 양수다.
+    ramps 는 [{from, to, rise_m}] 이고 구간 안에서는 기울기가 일정하다."""
+    for r in definition.get("ramps", []):
+        if r["from"] <= s <= r["to"]:
+            run = r["to"] - r["from"]
+            return (r["rise_m"] / run) if run > 0 else 0.0
+    return 0.0
+
+
+def elevation_at(definition: dict, s: float) -> float:
+    """코스 s 지점의 높이(m). 경사로를 다 올라간 뒤에는 그 높이를 유지한다."""
+    h = 0.0
+    for r in definition.get("ramps", []):
+        if s <= r["from"]:
+            continue
+        run = r["to"] - r["from"]
+        if run <= 0:
+            continue
+        h += r["rise_m"] * min(1.0, (s - r["from"]) / run)
+    return h
+
+
 def build_course(start: tuple[float, float], heading_deg: float, segments: list[dict]) -> dict:
     x, y = start
     h = math.radians(heading_deg)

@@ -32,6 +32,32 @@ export interface SignalDef {
 }
 export interface CrosswalkDef { id: string; from: number; to: number; ped_period: number; ped_from: number; ped_to: number }
 export interface StageDef { type: 'STOP_IN' | 'REVERSE_STOP_IN'; from: number; to: number; label: string }
+const GRAVITY = 9.81
+const STATIC_HOLD = 0.35
+
+/** 코스 s 지점의 경사(상승/수평거리). 서버 sim.py grade_at 과 같아야 한다 */
+export function gradeAt(d: CourseDefinition, s: number): number {
+  for (const r of d.ramps ?? []) {
+    if (r.from <= s && s <= r.to) {
+      const run = r.to - r.from
+      return run > 0 ? r.rise_m / run : 0
+    }
+  }
+  return 0
+}
+
+/** 코스 s 지점의 높이(m). 렌더링용. 서버 elevation_at 과 같아야 한다 */
+export function elevationAt(d: CourseDefinition, s: number): number {
+  let h = 0
+  for (const r of d.ramps ?? []) {
+    if (s <= r.from) continue
+    const run = r.to - r.from
+    if (run <= 0) continue
+    h += r.rise_m * Math.min(1, (s - r.from) / run)
+  }
+  return h
+}
+
 export interface CourseDefinition {
   kind: 'FUNCTION' | 'ROAD'
   sim_version: string
@@ -46,6 +72,10 @@ export interface CourseDefinition {
   signals: SignalDef[]
   crosswalks: CrosswalkDef[]
   stages: StageDef[]
+  /** 경사 구간. 구간 안에서 기울기는 일정하다. 오르막이 양수 */
+  ramps?: { from: number; to: number; rise_m: number }[]
+  /** 이 지점을 지나면 주행이 끝난다 */
+  finish_s?: number | null
 }
 
 export interface SimEvent {
@@ -215,9 +245,19 @@ export class Sim {
     let v = this.v
     const a = p.accel / TICK_HZ
     const b = p.brake / TICK_HZ
-    if (throttle === 1) v = v < 0 ? Math.min(0, v + b) : Math.min(p.maxFwd, v + a)
-    else if (throttle === -1) v = v > 0 ? Math.max(0, v - b) : Math.max(-p.maxRev, v - a)
+    // 뒤로 밀리는 중에 전진을 넣으면 제동력으로 잡고 0 을 지나 그대로 가속한다.
+    // 0 에서 끊으면 경사로에서 영영 출발하지 못한다.
+    if (throttle === 1) v = Math.min(p.maxFwd, v + (v < 0 ? b : a))
+    else if (throttle === -1) v = Math.max(-p.maxRev, v - (v > 0 ? b : a))
     else v = v > 0 ? Math.max(0, v - b) : Math.min(0, v + b)
+
+    // 경사로: 중력의 진행 방향 성분. 완만하면 정지 상태에서 굴러가지 않는다.
+    const g = gradeAt(this.d, this.s)
+    if (g) {
+      let slopeA = (-GRAVITY * Math.sin(Math.atan(g))) / TICK_HZ
+      if (Math.abs(v) < 1e-6 && Math.abs(slopeA) * TICK_HZ < STATIC_HOLD) slopeA = 0
+      v += slopeA
+    }
 
     const yaw = (v / p.wheelbase) * -st * p.maxSteer
     const h = this.h + yaw / TICK_HZ
@@ -372,6 +412,17 @@ export class Sim {
         }
         this.emit('STAGE_CLEAR', false, { stage: this.stage, label: stg.label ?? '' })
       }
+    }
+
+    // 피니시 라인 — 선을 넘으면 그 자리에서 끝난다. 과제를 다 못 했으면 완주로 치지 않는다.
+    const finishS = d.finish_s
+    if (finishS != null && s >= finishS) {
+      const done = this.stage >= stages.length
+      this.emit(done ? 'COURSE_COMPLETE' : 'FINISH_LINE_EARLY', true, {
+        stages_done: this.stage,
+        stages: stages.length,
+      })
+      return
     }
 
     if (this.tick >= d.time_limit_s * TICK_HZ) {

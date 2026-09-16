@@ -22,14 +22,40 @@ def test_function_course_complete_with_forward_and_reverse():
 
 
 def test_exam_course_clears_ramp_stop_parking_and_finish():
-    # 장내기능 코스: 경사로 정지 → 주차 구역 지나 정차 → 직각주차 후진 → 도착 정차 4단계를 다 통과해야 한다.
+    # 장내기능 코스: 경사로 정지 → 주차 구역 지나 정차 → 직각주차 후진 3단계를 다 통과한 뒤
+    # 피니시 라인을 넘어야 완주다. 마지막 단계는 STAGE_CLEAR 대신 COURSE_COMPLETE 로 나온다.
     d = _exam_course()
-    sim, _ = drive(d)
+    sim, _ = drive(d, max_ticks=30 * 400)
     codes = [e["code"] for e in sim.events]
-    assert codes.count("STAGE_CLEAR") == 3, codes
+    assert len(d["stages"]) == 3
+    assert codes.count("STAGE_CLEAR") == 2, codes
     assert "COURSE_COMPLETE" in codes
+    assert "FINISH_LINE_EARLY" not in codes
     assert "OFF_ROAD" not in codes
     assert any(st["type"] == "REVERSE_STOP_IN" for st in d["stages"])
+    # 경사로가 실제로 있어야 한다(이름만 붙은 구간이 아니라 고도와 중력이 걸린 구간)
+    assert d["ramps"] and any(r["rise_m"] > 0 for r in d["ramps"])
+    assert d["finish_s"] and d["finish_s"] < d["length_m"]
+
+
+def test_ramp_pushes_car_back_and_hill_start_works():
+    # 경사로에서 가속을 놓으면 뒤로 밀리고, 다시 전진을 넣으면 올라갈 수 있어야 한다.
+    from app.sim import Sim, grade_at
+    d = _exam_course()
+    sim = Sim(d)
+    while sim.s < d["ramps"][0]["from"] + 6 and sim.tick < 30 * 120:
+        sim.step(1, 0)
+    assert grade_at(d, sim.s) > 0
+    for _ in range(30 * 8):
+        sim.step(0, 0)          # 가속을 놓고 서면
+        if sim.v < -0.01:
+            break
+    assert sim.v < 0, sim.v      # 뒤로 밀린다
+    assert grade_at(d, sim.s) > 0, "경사 구간을 벗어나면 이 시험이 의미 없다"
+    before = sim.s
+    for _ in range(90):
+        sim.step(1, 0)          # 다시 전진을 넣으면
+    assert sim.s > before, (before, sim.s)   # 올라간다
 
 
 def test_road_course_lawful_run_completes_without_disqualification():

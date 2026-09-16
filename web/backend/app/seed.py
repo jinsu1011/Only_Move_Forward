@@ -130,7 +130,8 @@ def _road_course() -> dict:
         "crosswalks": [
             {"id": "P1", "from": round(s3 + 90, 2), "to": round(s3 + 96, 2), "ped_period": 18, "ped_from": 4, "ped_to": 11}
         ],
-        "stages": [{"type": "STOP_IN", "from": round(total - 20, 2), "to": round(total - 6, 2), "label": "도착 지점 정차"}],
+        "finish_s": round(total - 4, 2),
+        "stages": [],
     }
 
 
@@ -162,6 +163,7 @@ def _function_course() -> dict:
         "school_zones": [],
         "signals": [],
         "crosswalks": [],
+        "finish_s": round(total - 2, 2),
         "stages": [
             {"type": "STOP_IN", "from": round(total - 16, 2), "to": round(total - 5, 2), "label": "전진 후 정지 구역 정차"},
             {"type": "REVERSE_STOP_IN", "from": round(total - 34, 2), "to": round(total - 24, 2), "label": "후진으로 뒤 구역 정차"},
@@ -223,11 +225,17 @@ def _exam_course() -> dict:
             {"id": "CW1", "from": round(ramp_s + 6, 2), "to": round(ramp_s + 11, 2),
              "ped_period": 16, "ped_from": 3, "ped_to": 9}
         ],
+        # 경사로: 18m 에 걸쳐 1.6m 올라갔다가(약 9%) 같은 길이로 내려온다.
+        # 오르막에서 가속을 놓으면 뒤로 밀리므로 정지 과제가 실제로 어렵다.
+        "ramps": [
+            {"from": round(ramp_s + 14, 2), "to": round(ramp_s + 32, 2), "rise_m": 1.6},
+            {"from": round(ramp_s + 32, 2), "to": round(ramp_s + 40, 2), "rise_m": -1.6},
+        ],
+        "finish_s": round(total - 6, 2),
         "stages": [
-            {"type": "STOP_IN", "from": round(ramp_s + 20, 2), "to": round(ramp_s + 32, 2), "label": "경사로에서 정지"},
+            {"type": "STOP_IN", "from": round(ramp_s + 24, 2), "to": round(ramp_s + 32, 2), "label": "경사로에서 정지"},
             {"type": "STOP_IN", "from": round(park_s + 26, 2), "to": round(park_s + 36, 2), "label": "주차 구역 지나 정차"},
             {"type": "REVERSE_STOP_IN", "from": round(park_s + 6, 2), "to": round(park_s + 18, 2), "label": "직각주차 구역에 후진 주차"},
-            {"type": "STOP_IN", "from": round(total - 18, 2), "to": round(total - 5, 2), "label": "도착 지점 정차"},
         ],
     }
 
@@ -235,7 +243,7 @@ def _exam_course() -> dict:
 SCENARIOS = [
     {
         "code": "FUNCTION_BASIC",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "kind": "FUNCTION",
         "title": "기본조작 연습장",
         "summary": "직선·S자 구간을 전진으로 통과해 정지 구역에 멈춘 뒤, 후진으로 뒤 구역에 다시 멈춥니다. 조향·전진·후진·정지 감각을 익힙니다.",
@@ -243,7 +251,7 @@ SCENARIOS = [
     },
     {
         "code": "FUNCTION_EXAM_A",
-        "version": "1.1.0",
+        "version": "1.2.0",
         "kind": "FUNCTION",
         "title": "장내기능 코스",
         "summary": "출발해서 좌회전하고, 횡단보도를 지나 경사로에서 한 번 멈춥니다. 우회전 뒤 굴절 구간을 통과하고 신호 교차로를 지나, 직각주차 구역에 후진으로 넣습니다. 빠져나와 가속 구간을 지나 도착 지점에 정차합니다.",
@@ -251,7 +259,7 @@ SCENARIOS = [
     },
     {
         "code": "ROAD_CITY_A",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "kind": "ROAD",
         "title": "도심 도로주행 A코스",
         "summary": "신호 교차로, 좌회전 곡선, 어린이보호구역(시속 30km)과 신호 없는 횡단보도를 지나 도착 지점에 정차합니다.",

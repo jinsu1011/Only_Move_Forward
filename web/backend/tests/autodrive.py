@@ -55,7 +55,12 @@ def drive(definition: dict, cruise_kmh: float | None = None, obey: bool = True, 
             stop_at = (stage["from"] + stage["to"]) / 2 - PHYS["half_len"] + PHYS["half_len"]
             stop_at = stop_at + PHYS["half_len"]
 
-        if not forward:
+        in_box = bool(stage and stage["type"] == "STOP_IN" and stage["from"] <= sim.s <= stage["to"])
+        if forward and in_box:
+            # 이미 정지 구역 안이면 더 밀지 않는다. 경사로에서는 조금만 밀어도
+            # 정지 판정(0.1m/s 미만)에 못 들어가 과제가 끝나지 않는다.
+            throttle = 0
+        elif not forward:
             mid = (stage["from"] + stage["to"]) / 2
             throttle = -1 if sim.s > mid + 0.8 and speed < 8 else 0
         elif stop_at is not None:

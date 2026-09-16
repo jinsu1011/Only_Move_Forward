@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { courseToWorld, pedestrianActive, PHYS, signalState, type Sim } from './engine'
+import { courseToWorld, elevationAt, pedestrianActive, PHYS, signalState, type Sim } from './engine'
 
 export interface Marker3D {
   s: number
@@ -56,9 +56,10 @@ function strip(
   const indices: number[] = []
   const samples = [fromS, ...sim.cum.filter((s) => fromS < s && s < toS), toS]
   samples.forEach((s, index) => {
+    const lift = elevationAt(sim.d, s)   // 경사로 구간은 도로 자체가 올라간다
     for (const offset of [fromOffset, toOffset]) {
       const p = courseToWorld(sim, s, offset)
-      positions.push(p.x, height, -p.y)
+      positions.push(p.x, height + lift, -p.y)
     }
     if (index < samples.length - 1) {
       const i = index * 2
@@ -86,7 +87,8 @@ function courseLine(parent: THREE.Object3D, sim: Sim, offset: number, color: num
     const length = Math.hypot(dx, dz)
     if (length < 0.05) continue
     const line = new THREE.Mesh(new THREE.BoxGeometry(length, 0.018, 0.11), standard(color, 0.65))
-    line.position.set((a.x + b.x) / 2, 0.035, -(a.y + b.y) / 2)
+    const lift = (elevationAt(sim.d, sim.cum[index]) + elevationAt(sim.d, sim.cum[endIndex])) / 2
+    line.position.set((a.x + b.x) / 2, 0.035 + lift, -(a.y + b.y) / 2)
     line.rotation.y = Math.atan2(-dz, dx)
     parent.add(line)
   }
@@ -120,6 +122,8 @@ function markerSprite(text: string, danger: boolean) {
 export class DriveScene3D {
   private readonly scene = new THREE.Scene()
   private readonly camera = new THREE.PerspectiveCamera(60, 1, 0.08, 1500)
+  private readonly cockpit = new THREE.Group()
+  private wheel: THREE.Group | null = null
   private readonly renderer: THREE.WebGLRenderer
   private readonly world = new THREE.Group()
   private readonly car = new THREE.Group()
@@ -144,6 +148,8 @@ export class DriveScene3D {
     this.scene.add(this.world, this.car, this.transient)
     this.buildWorld(initialSim)
     this.buildCar()
+    this.buildCockpit()
+    this.scene.add(this.camera)   // 콕핏은 카메라에 붙어 함께 움직인다
 
     this.scene.add(new THREE.HemisphereLight(0xd9efff, 0x526640, 2.2))
     const sun = new THREE.DirectionalLight(0xfff3d6, 2.5)
@@ -171,6 +177,52 @@ export class DriveScene3D {
     if (this.rendered && !this.disposed) this.renderer.render(this.scene, this.camera)
   }
 
+  /** 운전석 내부. 카메라 자식이라 좌표는 "눈 기준"이다(-z 가 앞). */
+  private buildCockpit() {
+    const shell = standard(0x1b2026, 0.85)
+    const dash = standard(0x232a31, 0.8)
+    const trim = standard(0x0f1317, 0.7)
+    const add = (geo: THREE.BufferGeometry, mat: THREE.Material, pos: [number, number, number], rot?: [number, number, number]) => {
+      const m = new THREE.Mesh(geo, mat)
+      m.position.set(...pos)
+      if (rot) m.rotation.set(...rot)
+      this.cockpit.add(m)
+      return m
+    }
+    // 대시보드 — 아래쪽을 가려 시야를 앞유리로 한정한다
+    add(new THREE.BoxGeometry(1.9, 0.34, 0.6), dash, [0, -0.40, -0.60], [-0.16, 0, 0])
+    add(new THREE.BoxGeometry(1.9, 0.5, 0.2), trim, [0, -0.62, -0.32])
+    // 계기판 덮개와 화면
+    add(new THREE.BoxGeometry(0.62, 0.08, 0.26), trim, [-0.24, -0.27, -0.56], [-0.34, 0, 0])
+    const cluster = add(new THREE.PlaneGeometry(0.52, 0.17), new THREE.MeshBasicMaterial({ color: 0x0d3b2e }), [-0.24, -0.33, -0.53], [-0.38, 0, 0])
+    cluster.renderOrder = 2
+    // A 필러와 지붕 — 앞유리 테두리
+    add(new THREE.BoxGeometry(0.13, 1.4, 0.13), shell, [-0.82, 0.18, -0.55], [0, 0, 0.2])
+    add(new THREE.BoxGeometry(0.13, 1.4, 0.13), shell, [0.82, 0.18, -0.55], [0, 0, -0.2])
+    add(new THREE.BoxGeometry(2.0, 0.26, 0.45), shell, [0, 0.72, -0.55])
+    // 좌우 도어 트림(주변시 가림)
+    add(new THREE.BoxGeometry(0.2, 1.5, 1.4), shell, [-0.9, -0.24, 0.12])
+    add(new THREE.BoxGeometry(0.2, 1.5, 1.4), shell, [0.9, -0.24, 0.12])
+    // 핸들
+    const wheel = new THREE.Group()
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.025, 12, 36), standard(0x14181d, 0.6))
+    wheel.add(rim)
+    for (const angle of [0, (2 * Math.PI) / 3, (4 * Math.PI) / 3]) {
+      const spoke = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.024, 0.02), standard(0x1c2228, 0.6))
+      spoke.position.set(Math.cos(angle) * 0.08, Math.sin(angle) * 0.08, 0)
+      spoke.rotation.z = angle
+      wheel.add(spoke)
+    }
+    wheel.add(new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.03, 16), standard(0x2a323a, 0.5)))
+    wheel.children[wheel.children.length - 1].rotation.x = Math.PI / 2
+    wheel.position.set(-0.24, -0.30, -0.44)
+    wheel.rotation.x = -0.42
+    this.cockpit.add(wheel)
+    this.wheel = wheel
+    this.camera.add(this.cockpit)
+    this.cockpit.visible = false
+  }
+
   private buildWorld(sim: Sim) {
     const lane = sim.d.lane_width
     const ground = new THREE.Mesh(new THREE.PlaneGeometry(1200, 1200), standard(0x487a3f))
@@ -185,6 +237,38 @@ export class DriveScene3D {
     courseLine(this.world, sim, 0, sim.d.kind === 'ROAD' ? 0xf4c430 : 0xffffff, sim.d.kind !== 'ROAD')
     courseLine(this.world, sim, lane, 0xffffff)
     courseLine(this.world, sim, -lane, 0xffffff)
+
+    // 피니시 라인 — 체크무늬. 이 선을 넘으면 주행이 끝난다.
+    const finishS = sim.d.finish_s
+    if (finishS != null) {
+      const lift = elevationAt(sim.d, finishS)
+      const cols = 10
+      for (let row = 0; row < 2; row++) {
+        for (let col = 0; col < cols; col++) {
+          const off = -lane + ((col + 0.5) / cols) * lane * 2
+          const p = courseToWorld(sim, finishS + (row ? 0.55 : 0), off)
+          const tile = new THREE.Mesh(
+            new THREE.BoxGeometry((lane * 2) / cols, 0.02, 0.55),
+            standard((row + col) % 2 ? 0x111418 : 0xf8fafc, 0.6),
+          )
+          tile.position.set(p.x, 0.04 + lift, -p.y)
+          tile.rotation.y = -p.heading
+          this.world.add(tile)
+        }
+      }
+      // 양쪽 기둥과 가로대
+      for (const side of [-1, 1]) {
+        const p = courseToWorld(sim, finishS, side * (lane + 1.1))
+        const pole = new THREE.Mesh(new THREE.BoxGeometry(0.22, 5.2, 0.22), standard(0xe2e8f0, 0.5))
+        pole.position.set(p.x, 2.6 + lift, -p.y)
+        this.world.add(pole)
+      }
+      const mid = courseToWorld(sim, finishS, 0)
+      const beam = new THREE.Mesh(new THREE.BoxGeometry(lane * 2 + 2.4, 0.55, 0.18), standard(0x164936, 0.5))
+      beam.position.set(mid.x, 4.9 + lift, -mid.y)
+      beam.rotation.y = -mid.heading
+      this.world.add(beam)
+    }
 
     for (const zone of sim.d.school_zones) {
       this.world.add(strip(
@@ -326,14 +410,21 @@ export class DriveScene3D {
 
     if (options.mode === 'cockpit') {
       this.car.visible = false
+      this.cockpit.visible = true
       const forward = new THREE.Vector3(Math.cos(sim.h), 0, -Math.sin(sim.h))
       const right = new THREE.Vector3(Math.sin(sim.h), 0, Math.cos(sim.h))
-      this.camera.position.set(sim.x, 1.48, -sim.y).addScaledVector(forward, 0.52).addScaledVector(right, -0.34)
+      const lift = elevationAt(sim.d, sim.s)   // 경사로에서는 시점도 같이 올라간다
+      this.camera.position.set(sim.x, 1.48 + lift, -sim.y).addScaledVector(forward, 0.52).addScaledVector(right, -0.34)
       this.camera.up.set(0, 1, 0)
-      this.camera.lookAt(new THREE.Vector3(sim.x, 1.25, -sim.y).addScaledVector(forward, 24))
+      // 앞쪽 노면 높이를 함께 보므로 오르막에서는 시선이 위로, 내리막에서는 아래로 향한다
+      const aheadS = Math.min(sim.total, sim.s + 24)
+      this.camera.lookAt(new THREE.Vector3(sim.x, 1.25 + elevationAt(sim.d, aheadS), -sim.y).addScaledVector(forward, 24))
       this.camera.fov = 64
+      // 핸들은 조향 입력만큼 돌린다(엔진의 steer 는 -1~1)
+      if (this.wheel) this.wheel.rotation.z = -sim.steer * 2.1
     } else {
       this.car.visible = true
+      this.cockpit.visible = false
       const bounds = new THREE.Box3()
       for (let index = 0; index < sim.px.length; index++) bounds.expandByPoint(new THREE.Vector3(sim.px[index], 0, -sim.py[index]))
       const center = bounds.getCenter(new THREE.Vector3())
