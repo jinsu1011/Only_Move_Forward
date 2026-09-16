@@ -39,7 +39,7 @@ export default function Report() {
         <div>
           <div className="eyebrow">AI 통합 리포트</div>
           <h1>내 기록에서 찾은 다음 연습</h1>
-          <p>서버가 최근 필기 10회·주행 10회에서 계산한 숫자만 AI에 전달합니다. AI 응답의 수치·근거 id는 서버가 다시 검사합니다.</p>
+          <p>최근 필기 10회와 주행 10회를 서버가 셉니다. AI 에는 그 숫자만 넘어가고, 돌아온 답의 수치와 근거는 서버가 다시 봅니다.</p>
         </div>
         <button className="btn lg primary" onClick={() => ai.start({ kind: 'REPORT' })} disabled={ai.running}>
           {ai.running ? <><span className="spinner" /> 분석 중…</> : job ? '최신 기록으로 다시 분석' : '리포트 만들기'}

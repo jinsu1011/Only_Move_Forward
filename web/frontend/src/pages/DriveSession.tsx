@@ -380,7 +380,7 @@ export default function DriveSession() {
                   <>
                     <div style={{ fontSize: 46 }}>⚠️</div>
                     <h2>센서 신호가 끊겨 정지했습니다</h2>
-                    <p>{link.message ?? '0.6초 이상 센서 데이터가 들어오지 않았습니다.'} 이전 정렬값으로 자동 재개하지 않고, 다시 정렬한 새 주행으로 시작합니다.</p>
+                    <p>{link.message ?? '0.6초 이상 센서 데이터가 들어오지 않았습니다.'} 이전 정렬값으로 그냥 잇지 않습니다. 다시 정렬하고 새 주행으로 시작합니다.</p>
                     <div className="row" style={{ justifyContent: 'center' }}>
                       <button className="btn lg primary" onClick={() => restart('SENSOR_LOST')}>재연결 후 다시 시작</button>
                       <button className="btn lg ghost" style={{ color: '#fff', background: 'rgba(255,255,255,.08)' }} onClick={() => { controller.set({ mode: 'KEYBOARD' }); void restart('SENSOR_LOST') }}>키보드로 새로 시작</button>
@@ -391,7 +391,7 @@ export default function DriveSession() {
                   <>
                     <div style={{ fontSize: 46 }}>⏸</div>
                     <h2>{pauseReason === 'BLUR' ? '화면을 벗어나 일시정지했습니다' : '일시정지'}</h2>
-                    <p>눌려 있던 키 입력을 모두 해제했습니다. 준비되면 3초 카운트다운 후 이어서 달립니다.</p>
+                    <p>누르고 있던 키는 다 놨습니다. 준비되면 3초 세고 이어서 갑니다.</p>
                     <div className="row" style={{ justifyContent: 'center' }}>
                       <button className="btn lg primary" onClick={resume}>계속 주행</button>
                       <button className="btn lg ghost" style={{ color: '#fff', background: 'rgba(255,255,255,.08)' }} onClick={() => restart('RESTART')}>R 처음부터</button>
@@ -404,14 +404,14 @@ export default function DriveSession() {
             </div>
           )}
           {phase === 'SAVING' && (
-            <div className="overlay"><div className="box"><span className="spinner" style={{ width: 36, height: 36 }} /><h2>서버가 주행을 다시 재생해 검증하는 중…</h2><p>입력 기록으로 사건을 다시 계산합니다.</p></div></div>
+            <div className="overlay"><div className="box"><span className="spinner" style={{ width: 36, height: 36 }} /><h2>서버가 다시 몰아 보는 중…</h2><p>저장된 입력으로 사건을 다시 셉니다.</p></div></div>
           )}
           {phase === 'SAVE_FAILED' && (
             <div className="overlay">
               <div className="box">
                 <div style={{ fontSize: 46 }}>💾</div>
                 <h2>주행 결과가 아직 저장되지 않았습니다</h2>
-                <p>{saveError?.message ?? '이전에 저장하지 못한 주행 기록이 있습니다.'} 입력 기록은 이 브라우저에 보존되어 있습니다. 저장 완료 전에는 결과로 표시하지 않습니다.</p>
+                <p>{saveError?.message ?? '이전에 저장하지 못한 주행 기록이 있습니다.'} 입력 기록은 이 브라우저에 남아 있습니다. 저장되기 전까지는 결과로 보여 주지 않습니다.</p>
                 <div className="row" style={{ justifyContent: 'center' }}>
                   <button className="btn lg primary" onClick={() => pending && save(JSON.parse(pending))}>다시 저장</button>
                   <button className="btn lg ghost" style={{ color: '#fff', background: 'rgba(255,255,255,.08)' }} onClick={() => { sessionStorage.removeItem(pendingKey(session.id)); void restart('USER_EXIT', '/drive') }}>기록 버리고 나가기</button>

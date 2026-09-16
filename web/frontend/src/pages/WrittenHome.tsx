@@ -41,7 +41,7 @@ export default function WrittenHome() {
         <div>
           <div className="eyebrow">필기 연습</div>
           <h1>약한 주제만 골라서 풀어 보세요</h1>
-          <p>답은 선택할 때마다 서버에 저장되고, 제출한 뒤에만 정답과 조문 근거가 공개됩니다.</p>
+          <p>고를 때마다 바로 저장됩니다. 정답과 근거 조문은 제출한 뒤에 열립니다.</p>
         </div>
       </div>
       {catalog.error && <LoadError error={catalog.error} onRetry={catalog.reload} />}

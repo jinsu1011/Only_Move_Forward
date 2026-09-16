@@ -30,7 +30,7 @@ export default function Dashboard() {
         <div>
           <div className="eyebrow">{LICENSE_LABEL[data.user.license_type]} 준비</div>
           <h1>{data.user.nickname}님, 오늘은 무엇을 연습할까요?</h1>
-          <p>필기와 주행 기록이 쌓일수록 AI 리포트가 더 정확한 다음 연습을 제안합니다.</p>
+          <p>기록이 쌓일수록 리포트가 짚어 주는 곳이 정확해집니다.</p>
         </div>
         <div className="row">
           <Link className="btn ghost" to="/written">필기 연습</Link>

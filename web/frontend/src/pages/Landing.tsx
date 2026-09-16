@@ -73,9 +73,9 @@ export default function Landing() {
               <em>여기서</em> 같이 합니다
             </h1>
             <p className="lead">
-              운전면허를 준비하면서 필기는 문제집으로, 주행은 학원에서 따로 하셨다면.
-              틀린 문제는 조문 근거까지 확인하고, 기능·도로주행은 브라우저에서 직접 몰아 봅니다.
-              두 기록을 묶어 다음에 무엇을 연습할지 짚어 드립니다.
+              필기는 문제집으로, 주행은 학원에서. 보통 그렇게 따로 준비합니다.
+              여기서는 틀린 문제를 조문까지 열어 보고, 기능·도로주행을 브라우저에서 직접 몰아 봅니다.
+              두 기록이 한곳에 쌓이니 다음에 뭘 할지가 보입니다.
             </p>
             <div className="cta">
               <Link className="btn lg primary" to={user ? '/app' : '/signup'}>
@@ -95,23 +95,23 @@ export default function Landing() {
 
       <section className="section" id="how">
         <div className="eyebrow">핵심 기능</div>
-        <h2>세 가지 학습을 하나의 흐름으로</h2>
-        <p className="sub">따로 노는 문제집·주행 연습 영상 대신, 내 기록에서 약점을 찾아 바로 다음 연습으로 연결합니다.</p>
+        <h2>셋을 한 흐름으로 묶었습니다</h2>
+        <p className="sub">약한 곳은 기록이 알려 줍니다. 찾아서 바로 다음 연습으로 넘깁니다.</p>
         <div className="grid c3" style={{ marginTop: 28 }}>
           <div className="card pillar">
             <div className="feature-no">01 / WRITTEN</div>
             <h3>필기 연습 · 오답 해설</h3>
-            <p>주제별 연습 문항을 풀고, 제출 후에만 정답과 조문 근거를 확인합니다. AI는 확정된 정답을 바꾸지 않고 내 선택이 왜 틀렸는지만 설명합니다.</p>
+            <p>제출하기 전에는 정답을 보여 주지 않습니다. 제출하면 정답과 근거 조문이 함께 열립니다. AI 는 정답을 건드리지 않고, 내가 왜 그걸 골랐는지만 짚습니다.</p>
           </div>
           <div className="card pillar">
             <div className="feature-no">02 / DRIVE</div>
             <h3>센서 핸들 주행</h3>
-            <p>MPU-6050을 좌우로 기울여 조향하고 방향키 위·아래로 전진과 후진을 제어합니다. 중앙 3초 고정 뒤 좌·우를 확인하며 자세를 보정합니다. 키보드 모드는 W/A/S/D를 사용합니다.</p>
+            <p>핸들을 좌우로 기울이면 그대로 꺾입니다. 전진·후진은 방향키로 합니다. 출발 전에 중앙 3초, 좌, 우를 한 번씩 확인합니다. 센서가 없으면 W A S D 로 하면 됩니다.</p>
           </div>
           <div className="card pillar">
             <div className="feature-no">03 / REPORT</div>
             <h3>근거 있는 AI 리포트</h3>
-            <p>필기 주제별 정답률과 주행 사건을 서버가 계산하고, AI는 그 숫자만 인용해 다음 연습을 제안합니다. 측정하지 않은 거울 확인·반응시간은 말하지 않습니다.</p>
+            <p>숫자는 서버가 냅니다. AI 는 그 숫자만 가지고 다음 연습을 고릅니다. 재지 않은 것은 말하지 않습니다. 거울 확인이나 반응시간 같은 것들입니다.</p>
           </div>
         </div>
       </section>
@@ -137,7 +137,7 @@ export default function Landing() {
             <div className="eyebrow">정직한 채점 범위</div>
             <h3 style={{ fontSize: 22 }}>도로주행 평가 57개 항목, 무엇을 판정하나요?</h3>
             <p className="muted" style={{ marginTop: 8, lineHeight: 1.6 }}>
-              별표26 감점 46·실격 11 항목을 모두 조사해 시뮬레이션으로 확인 가능한 범위만 분류했습니다.
+              별표26 감점 46개·실격 11개를 전부 훑고, 시뮬레이션에서 확인되는 것만 골라 표시합니다.
             </p>
             <div className="grid c3" style={{ marginTop: 18 }}>
               <div className="stat"><span className="label">A 자동 채점</span><span className="value num">{support('A')}<small>개</small></span></div>
@@ -148,7 +148,7 @@ export default function Landing() {
           </div>
           <div className="card">
             <div className="eyebrow">데이터 출처</div>
-            <h3 style={{ fontSize: 22 }}>출처와 버전을 함께 저장합니다</h3>
+            <h3 style={{ fontSize: 22 }}>어디서 가져왔는지 같이 적어 둡니다</h3>
             <div className="list" style={{ marginTop: 10 }}>
               {guide?.sources.map((s) => (
                 <a key={s.id} className="item" href={s.url} target="_blank" rel="noreferrer">

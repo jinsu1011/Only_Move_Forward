@@ -400,7 +400,7 @@ export default function DriveSetup() {
         <div>
           <div className="eyebrow">{scenario.data.title} · 출발 전 점검</div>
           <h1>{ctl.mode === 'SENSOR' ? '센서 핸들 정렬' : '키보드 입력 확인'}</h1>
-          <p>READY 가 되기 전에는 출발할 수 없습니다. 언제든 <span className="kbd">R</span> 로 처음부터 다시 정렬합니다.</p>
+          <p>READY 전에는 출발하지 못합니다. <span className="kbd">R</span> 을 누르면 언제든 처음부터 다시 합니다.</p>
         </div>
         <div className="row">
           <div className="seg">

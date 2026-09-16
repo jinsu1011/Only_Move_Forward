@@ -21,7 +21,7 @@ export default function WrittenReview() {
         <div>
           <div className="eyebrow">문항 {data.position} 해설</div>
           <h1>{data.is_correct ? '정답입니다' : '오답을 짚어 볼게요'}</h1>
-          <p>정답은 검수된 문항 데이터가 결정합니다. AI는 설명만 담당합니다.</p>
+          <p>정답은 문항 데이터가 정합니다. AI 는 설명만 합니다.</p>
         </div>
         <div className="row">
           <Link className="btn ghost" to={`/written/attempts/${data.attempt_id}/result`}>결과로</Link>
