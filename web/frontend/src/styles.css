@@ -37,6 +37,10 @@ body {
   -webkit-font-smoothing: antialiased;
   font-feature-settings: 'tnum' 1;
   letter-spacing: -0.01em;
+  /* 한국어는 어절 단위로 끊어야 읽힌다. 기본값은 글자 아무 데서나 잘라
+     "횡단보도 / 앞" 처럼 단어를 쪼갠다. 끊을 데가 없는 긴 토큰(URL·코드)만 anywhere 로 푼다. */
+  word-break: keep-all;
+  overflow-wrap: anywhere;
 }
 a { color: inherit; text-decoration: none; }
 button { font: inherit; }
@@ -183,7 +187,7 @@ p { margin: 0; }
 .hero { position: relative; overflow: hidden; background: #172019; color: #f8f5eb; border-bottom: 8px solid #e76d3b; }
 .hero-inner { max-width: 1320px; margin: 0 auto; padding: 92px 28px 104px; display: grid; grid-template-columns: 1.08fr .92fr; gap: 74px; align-items: center; }
 .hero-kicker { color: #e4b875; font-size: 12px; font-weight: 800; letter-spacing: .16em; }
-.hero h1 { font-size: clamp(48px, 5.2vw, 76px); line-height: 1.06; font-weight: 780; letter-spacing: -0.055em; }
+.hero h1 { font-size: clamp(38px, 3.9vw, 60px); line-height: 1.18; font-weight: 780; letter-spacing: -0.04em; }
 .hero h1 em { font-style: normal; color: #f19a68; }
 .hero p.lead { font-size: 18px; line-height: 1.72; color: #cbd3c8; margin-top: 26px; max-width: 610px; }
 .hero .cta { margin-top: 34px; display: flex; gap: 12px; flex-wrap: wrap; }
@@ -191,7 +195,8 @@ p { margin: 0; }
 .hero .trust { margin-top: 38px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,.2); display: flex; gap: 22px; flex-wrap: wrap; color: #aeb9ae; font-size: 12px; letter-spacing: .03em; }
 .hero .trust span { display: inline-flex; gap: 7px; align-items: center; }
 .hero-visual { background: #0c110d; border: 1px solid #4a574c; border-radius: 2px; padding: 10px; box-shadow: 22px 22px 0 #27352a; transform: rotate(1deg); }
-@media (max-width: 960px) { .hero-inner { grid-template-columns: 1fr; } .hero h1 { font-size: 40px; } }
+@media (max-width: 1180px) { .hero h1 { font-size: 42px; } }
+@media (max-width: 960px) { .hero-inner { grid-template-columns: 1fr; gap: 40px; } .hero h1 { font-size: 36px; } }
 .section { max-width: 1320px; margin: 0 auto; padding: 88px 28px 12px; }
 .section h2 { font-size: 34px; font-weight: 800; }
 .section .sub { color: var(--ink-3); font-size: 17px; margin-top: 10px; line-height: 1.6; }
@@ -293,3 +298,21 @@ p { margin: 0; }
 .table td { padding: 11px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
 .table tr:last-child td { border-bottom: 0; }
 .scroll-x { overflow-x: auto; }
+
+/* ---------- 리포트 통계 행 (클릭하면 해당 연습으로) ---------- */
+.stat-row {
+  display: block; padding: 12px 14px; border: 1px solid var(--line);
+  border-radius: var(--radius-sm); background: var(--surface);
+  transition: border-color .15s, background .15s, transform .05s;
+}
+.stat-row:hover { border-color: var(--primary); background: var(--primary-soft); }
+.stat-row:active { transform: translateY(1px); }
+.stat-row .sr-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.stat-row .sr-name { font-weight: 750; font-size: 15px; }
+.stat-row .sr-figure { font-weight: 800; font-size: 20px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.stat-row .sr-sub { font-size: 12.5px; color: var(--ink-3); margin-top: 2px; }
+.stat-row .sr-go { font-size: 12.5px; font-weight: 700; color: var(--primary); opacity: 0; transition: opacity .15s; }
+.stat-row:hover .sr-go { opacity: 1; }
+.stat-row.weak { border-left: 4px solid var(--red); }
+.stat-row.mid { border-left: 4px solid var(--amber); }
+.stat-row.ok { border-left: 4px solid var(--green); }

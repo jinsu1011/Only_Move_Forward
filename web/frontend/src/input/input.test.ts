@@ -200,7 +200,7 @@ describe('setup machine', () => {
 })
 
 describe('engine matches server replay (golden fixture from Python)', () => {
-  for (const name of ['road', 'function', 'road_violations'] as const) {
+  for (const name of ['road', 'function', 'road_violations', 'exam'] as const) {
     it(`${name} course events and final pose are identical`, () => {
       const g = golden[name]
       const sim = replay(g.definition as unknown as CourseDefinition, g.inputs as [number, number, number][], g.total_ticks)

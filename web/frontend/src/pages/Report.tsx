@@ -25,6 +25,13 @@ export default function Report() {
     const s = scenarios.data?.items.find((x) => x.code === ref)
     return s ? `/drive/setup/${s.id}` : '/drive'
   }
+  // 사건이 실제로 나는 코스로 보낸다. 기본조작 과제에서만 나는 사건은 기본조작으로,
+  // 신호·보호구역·차로처럼 도로에서만 나는 사건은 도로주행으로. 코스를 못 찾으면 코스 선택 화면.
+  const eventCourseLink = (code: string) => {
+    const kind = code.startsWith('STAGE') || code === 'COURSE_COMPLETE' ? 'FUNCTION' : 'ROAD'
+    const s = scenarios.data?.items.find((x) => x.kind === kind)
+    return s ? `/drive/setup/${s.id}` : '/drive'
+  }
 
   return (
     <div className="page fade-in">
@@ -96,25 +103,45 @@ export default function Report() {
             <div className="card">
               <div className="card-head"><h3>필기 주제별 정답률</h3><span className="small muted num">{r.stats.written.total_correct}/{r.stats.written.total_answers}</span></div>
               {r.stats.written.categories.length === 0 ? <div className="empty">제출한 필기 기록이 없습니다.</div> : (
-                <div className="stack">
-                  {[...r.stats.written.categories].sort((a, b) => a.accuracy_pct - b.accuracy_pct).map((c) => (
-                    <div key={c.id}>
-                      <div className="row between small"><b>{c.name}</b><span className="num muted">{c.correct}/{c.total} · {c.accuracy_pct}%</span></div>
-                      <div style={{ marginTop: 6 }}><Bar value={c.correct} max={c.total} color={c.accuracy_pct >= 70 ? 'var(--green)' : c.accuracy_pct >= 50 ? 'var(--amber)' : 'var(--red)'} /></div>
-                    </div>
-                  ))}
+                <div className="stack" style={{ gap: 10 }}>
+                  {/* 약한 주제가 위로 오게 정렬한다. 행을 누르면 그 주제만 골라 바로 연습을 시작한다. */}
+                  {[...r.stats.written.categories].sort((a, b) => a.accuracy_pct - b.accuracy_pct).map((c) => {
+                    const tone = c.accuracy_pct >= 70 ? 'ok' : c.accuracy_pct >= 50 ? 'mid' : 'weak'
+                    const color = tone === 'ok' ? 'var(--green)' : tone === 'mid' ? 'var(--amber)' : 'var(--red)'
+                    return (
+                      <Link key={c.id} className={`stat-row ${tone}`} to={`/written?category=${c.id}`}>
+                        <div className="sr-top">
+                          <span className="sr-name">{c.name}</span>
+                          <span className="sr-figure" style={{ color }}>{c.accuracy_pct}%</span>
+                        </div>
+                        <div style={{ marginTop: 8 }}><Bar value={c.correct} max={c.total} color={color} /></div>
+                        <div className="row between" style={{ marginTop: 6 }}>
+                          <span className="sr-sub num">{c.total}문항 중 {c.correct}개 정답</span>
+                          <span className="sr-go">이 주제 연습하기 →</span>
+                        </div>
+                      </Link>
+                    )
+                  })}
                 </div>
               )}
             </div>
             <div className="card">
               <div className="card-head"><h3>주행 사건 빈도</h3><span className="small muted">주행 {r.stats.driving.total_sessions}회 · 완주 {r.stats.driving.completed_sessions} · 실격 해당 {r.stats.driving.disqualified_sessions}</span></div>
               {r.stats.driving.event_counts.length === 0 ? <div className="empty">{r.stats.driving.total_sessions ? '기록된 사건이 없습니다.' : '주행 기록이 없습니다.'}</div> : (
-                <div className="stack">
+                <div className="stack" style={{ gap: 10 }}>
+                  {/* 사건은 이미 많이 난 순서로 온다. 행을 누르면 그 사건이 나는 코스로 바로 간다. */}
                   {r.stats.driving.event_counts.map((e) => (
-                    <div key={e.code}>
-                      <div className="row between small"><b>{e.label}</b><span className="num muted">{e.count}회</span></div>
-                      <div style={{ marginTop: 6 }}><Bar value={e.count} max={r.stats.driving.event_counts[0].count} color="var(--amber)" /></div>
-                    </div>
+                    <Link key={e.code} className="stat-row weak" to={eventCourseLink(e.code)}>
+                      <div className="sr-top">
+                        <span className="sr-name">{e.label}</span>
+                        <span className="sr-figure" style={{ color: 'var(--amber)' }}>{e.count}<small style={{ fontSize: 13, fontWeight: 700, marginLeft: 2 }}>회</small></span>
+                      </div>
+                      <div style={{ marginTop: 8 }}><Bar value={e.count} max={r.stats.driving.event_counts[0].count} color="var(--amber)" /></div>
+                      <div className="row between" style={{ marginTop: 6 }}>
+                        <span className="sr-sub">{e.code}</span>
+                        <span className="sr-go">이 코스 다시 달리기 →</span>
+                      </div>
+                    </Link>
                   ))}
                 </div>
               )}

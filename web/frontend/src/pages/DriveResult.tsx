@@ -84,8 +84,10 @@ export default function DriveResult() {
       </div>
 
       <div className="grid side" style={{ marginTop: 20 }}>
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-          <div ref={stageRef} className="result-stage-3d" style={{ position: 'relative', background: '#15231b', height: 460 }}>
+        {/* 사건이 많으면 오른쪽 타임라인이 길어진다. 지도는 카드 높이를 채워서
+            아래에 흰 여백이 남지 않게 한다(최소 460px). */}
+        <div className="card" style={{ padding: 0, overflow: 'hidden', display: 'flex' }}>
+          <div ref={stageRef} className="result-stage-3d" style={{ position: 'relative', background: '#15231b', flex: 1, minHeight: 460 }}>
             {!replayed && <div className="overlay" style={{ background: 'transparent' }}>{data.status === 'ABORTED' ? '중단된 주행은 경로 기록이 없습니다.' : <span className="spinner" />}</div>}
             <div className="hud"><div className="hud-box tiny">파란 선: 서버에 저장된 입력으로 다시 그린 실제 주행 경로 · 번호: 사건 위치</div></div>
           </div>

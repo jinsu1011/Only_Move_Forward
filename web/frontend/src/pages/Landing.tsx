@@ -66,14 +66,16 @@ export default function Landing() {
       <section className="hero">
         <div className="hero-inner">
           <div className="fade-in">
-            <div className="hero-kicker">KOREAN DRIVER'S LICENSE · PRACTICE SYSTEM</div>
+            <div className="hero-kicker">1·2종 보통 운전면허 학습 보조</div>
             <h1 style={{ marginTop: 18 }}>
-              필기 오답과 주행 실수를
+              학과시험 문제도, 주행 연습도
               <br />
-              <em>하나의 기록</em>으로 코칭합니다
+              <em>여기서</em> 같이 합니다
             </h1>
             <p className="lead">
-              필기 연습, 기울기 센서 핸들로 하는 주행 시뮬레이션, 그리고 실제 저장된 기록만 근거로 삼는 AI 리포트까지. 무엇을 틀렸고 다음에 무엇을 연습할지 한 화면에서 정합니다.
+              운전면허를 준비하면서 필기는 문제집으로, 주행은 학원에서 따로 하셨다면.
+              틀린 문제는 조문 근거까지 확인하고, 기능·도로주행은 브라우저에서 직접 몰아 봅니다.
+              두 기록을 묶어 다음에 무엇을 연습할지 짚어 드립니다.
             </p>
             <div className="cta">
               <Link className="btn lg primary" to={user ? '/app' : '/signup'}>

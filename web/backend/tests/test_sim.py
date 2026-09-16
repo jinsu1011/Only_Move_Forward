@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from app.seed import _function_course, _road_course
+from app.seed import _exam_course, _function_course, _road_course
 from app.sim import Sim, replay
 from autodrive import drive
 
@@ -19,6 +19,17 @@ def test_function_course_complete_with_forward_and_reverse():
     assert "STAGE_CLEAR" in codes(sim)
     again = replay(d, inputs, sim.tick)
     assert again.events == sim.events
+
+
+def test_exam_course_clears_ramp_stop_parking_and_finish():
+    # 장내기능 코스: 경사로 정지 → 주차 구역 지나 정차 → 직각주차 후진 → 도착 정차 4단계를 다 통과해야 한다.
+    d = _exam_course()
+    sim, _ = drive(d)
+    codes = [e["code"] for e in sim.events]
+    assert codes.count("STAGE_CLEAR") == 3, codes
+    assert "COURSE_COMPLETE" in codes
+    assert "OFF_ROAD" not in codes
+    assert any(st["type"] == "REVERSE_STOP_IN" for st in d["stages"])
 
 
 def test_road_course_lawful_run_completes_without_disqualification():
@@ -89,6 +100,8 @@ def test_write_golden_fixture_for_frontend():
     sim2, inputs2 = drive(d2)
     d3 = _road_course()
     sim3, inputs3 = drive(d3, cruise_kmh=48, obey=False)
+    d4 = _exam_course()
+    sim4, inputs4 = drive(d4)
     data = {
         "road": {"definition": d, "inputs": inputs, "total_ticks": sim.tick, "events": sim.events,
                  "final": {"x": sim.x, "y": sim.y, "h": sim.h, "v": sim.v}},
@@ -96,6 +109,8 @@ def test_write_golden_fixture_for_frontend():
                             "final": {"x": sim3.x, "y": sim3.y, "h": sim3.h, "v": sim3.v}},
         "function": {"definition": d2, "inputs": inputs2, "total_ticks": sim2.tick, "events": sim2.events,
                      "final": {"x": sim2.x, "y": sim2.y, "h": sim2.h, "v": sim2.v}},
+        "exam": {"definition": d4, "inputs": inputs4, "total_ticks": sim4.tick, "events": sim4.events,
+                 "final": {"x": sim4.x, "y": sim4.y, "h": sim4.h, "v": sim4.v}},
     }
     FIXTURE.parent.mkdir(parents=True, exist_ok=True)
     FIXTURE.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")

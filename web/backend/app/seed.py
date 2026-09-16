@@ -169,6 +169,61 @@ def _function_course() -> dict:
     }
 
 
+def _exam_course() -> dict:
+    """장내기능시험을 본뜬 코스. 출발 → 좌회전 → 경사로 정지 → 우회전 → 신호교차로 →
+    직각주차(전진 정차 후 후진 진입) → 가속 구간 → 도착 정차 순서로 돈다.
+    과제는 기존 엔진의 STOP_IN·REVERSE_STOP_IN 으로만 표현했다. 공식 기능시험 채점표(별표24)는
+    아직 조사·검수 전이라 연결하지 않는다. 그래서 별표26 을 쓰는 ROAD 가 아니라 FUNCTION 이다."""
+    geo = build_course(
+        (0.0, 0.0),
+        0.0,
+        [
+            {"type": "straight", "length": 42},    # 출발
+            {"type": "arc", "radius": 16, "angle": 90},    # 좌회전
+            {"type": "straight", "length": 46},    # 경사로
+            {"type": "arc", "radius": 16, "angle": -90},   # 우회전
+            {"type": "straight", "length": 58},    # 신호 교차로
+            {"type": "arc", "radius": 15, "angle": -90},   # 주차장 진입
+            {"type": "straight", "length": 38},    # 직각주차 구역
+            {"type": "arc", "radius": 15, "angle": 90},    # 주차장 탈출
+            {"type": "straight", "length": 62},    # 가속 구간 → 도착
+        ],
+    )
+    ends = geo["segment_end_s"]
+    total = geo["length_m"]
+    ramp_s = ends[1]      # 경사로 직선이 시작하는 지점
+    cross_s = ends[3]     # 신호 교차로 직선이 시작하는 지점
+    park_s = ends[5]      # 직각주차 구역이 시작하는 지점
+    lane = 4.0
+    return {
+        "kind": "FUNCTION",
+        "sim_version": SIM_VERSION,
+        "lane_width": lane,
+        "lanes_each_way": 1,
+        "time_limit_s": 300,
+        **geo,
+        "start": start_pose(geo["centerline"], lane / 2),
+        "speed_limits": [{"from": 0, "to": total, "limit_kmh": 30}],
+        "school_zones": [],
+        "signals": [
+            {
+                "id": "EX1",
+                "stop_s": round(cross_s + 16, 2),
+                "crosswalk_from": round(cross_s + 17, 2), "crosswalk_to": round(cross_s + 22, 2),
+                "intersection_from": round(cross_s + 23, 2), "intersection_to": round(cross_s + 34, 2),
+                "green": 10, "yellow": 3, "red": 9, "offset": 2,
+            }
+        ],
+        "crosswalks": [],
+        "stages": [
+            {"type": "STOP_IN", "from": round(ramp_s + 20, 2), "to": round(ramp_s + 32, 2), "label": "경사로에서 정지"},
+            {"type": "STOP_IN", "from": round(park_s + 26, 2), "to": round(park_s + 36, 2), "label": "주차 구역 지나 정차"},
+            {"type": "REVERSE_STOP_IN", "from": round(park_s + 6, 2), "to": round(park_s + 18, 2), "label": "직각주차 구역에 후진 주차"},
+            {"type": "STOP_IN", "from": round(total - 18, 2), "to": round(total - 5, 2), "label": "도착 지점 정차"},
+        ],
+    }
+
+
 SCENARIOS = [
     {
         "code": "FUNCTION_BASIC",
@@ -177,6 +232,14 @@ SCENARIOS = [
         "title": "기본조작 연습장",
         "summary": "직선·S자 구간을 전진으로 통과해 정지 구역에 멈춘 뒤, 후진으로 뒤 구역에 다시 멈춥니다. 조향·전진·후진·정지 감각을 익힙니다.",
         "build": _function_course,
+    },
+    {
+        "code": "FUNCTION_EXAM_A",
+        "version": "1.0.0",
+        "kind": "FUNCTION",
+        "title": "장내기능 코스",
+        "summary": "출발해서 좌회전, 경사로에서 정지했다가 다시 출발하고, 신호 교차로를 지나 직각주차 구역에 후진으로 넣습니다. 빠져나와 가속 구간을 지나 도착 지점에 정차합니다.",
+        "build": _exam_course,
     },
     {
         "code": "ROAD_CITY_A",
