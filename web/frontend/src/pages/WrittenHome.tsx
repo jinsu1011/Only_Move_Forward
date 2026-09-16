@@ -59,7 +59,7 @@ export default function WrittenHome() {
               <div className="row wrap" style={{ marginTop: 14 }}>
                 {c.categories.map((cat) => (
                   <button key={cat.id} className={`chip ${selected.includes(cat.id) ? 'on' : ''}`} aria-pressed={selected.includes(cat.id)} onClick={() => toggle(cat.id)}>
-                    {cat.name} <span className="count">{cat.question_count}</span>
+                    {cat.name}
                   </button>
                 ))}
               </div>
