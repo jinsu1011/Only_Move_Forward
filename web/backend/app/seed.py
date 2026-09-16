@@ -170,37 +170,42 @@ def _function_course() -> dict:
 
 
 def _exam_course() -> dict:
-    """장내기능시험을 본뜬 코스. 출발 → 좌회전 → 경사로 정지 → 우회전 → 신호교차로 →
-    직각주차(전진 정차 후 후진 진입) → 가속 구간 → 도착 정차 순서로 돈다.
+    """장내기능시험을 본뜬 코스. 출발 → 좌회전 → 횡단보도 → 경사로 정지 → 우회전 →
+    굴절(S자) → 신호 교차로 → 직각주차(전진 정차 후 후진 진입) → 가속 구간 → 도착 정차.
     과제는 기존 엔진의 STOP_IN·REVERSE_STOP_IN 으로만 표현했다. 공식 기능시험 채점표(별표24)는
-    아직 조사·검수 전이라 연결하지 않는다. 그래서 별표26 을 쓰는 ROAD 가 아니라 FUNCTION 이다."""
+    아직 조사·검수 전이라 연결하지 않는다. 그래서 별표26 을 쓰는 ROAD 가 아니라 FUNCTION 이다.
+    회전 반경은 자동 주행이 차로를 벗어나지 않는 값으로 맞췄다."""
     geo = build_course(
         (0.0, 0.0),
         0.0,
         [
-            {"type": "straight", "length": 42},    # 출발
+            {"type": "straight", "length": 38},            # 출발
             {"type": "arc", "radius": 16, "angle": 90},    # 좌회전
-            {"type": "straight", "length": 46},    # 경사로
+            {"type": "straight", "length": 40},            # 횡단보도 · 경사로
             {"type": "arc", "radius": 16, "angle": -90},   # 우회전
-            {"type": "straight", "length": 58},    # 신호 교차로
+            {"type": "arc", "radius": 20, "angle": -35},   # 굴절(S자) 1
+            {"type": "arc", "radius": 20, "angle": 35},    # 굴절(S자) 2
+            {"type": "arc", "radius": 20, "angle": 35},    # 굴절(S자) 3
+            {"type": "arc", "radius": 20, "angle": -35},   # 굴절(S자) 4
+            {"type": "straight", "length": 50},            # 신호 교차로
             {"type": "arc", "radius": 15, "angle": -90},   # 주차장 진입
-            {"type": "straight", "length": 38},    # 직각주차 구역
+            {"type": "straight", "length": 38},            # 직각주차 구역
             {"type": "arc", "radius": 15, "angle": 90},    # 주차장 탈출
-            {"type": "straight", "length": 62},    # 가속 구간 → 도착
+            {"type": "straight", "length": 55},            # 가속 구간 → 도착
         ],
     )
     ends = geo["segment_end_s"]
     total = geo["length_m"]
-    ramp_s = ends[1]      # 경사로 직선이 시작하는 지점
-    cross_s = ends[3]     # 신호 교차로 직선이 시작하는 지점
-    park_s = ends[5]      # 직각주차 구역이 시작하는 지점
+    ramp_s = ends[1]      # 횡단보도·경사로가 있는 직선의 시작
+    cross_s = ends[7]     # 신호 교차로 직선의 시작
+    park_s = ends[9]      # 직각주차 구역의 시작
     lane = 4.0
     return {
         "kind": "FUNCTION",
         "sim_version": SIM_VERSION,
         "lane_width": lane,
         "lanes_each_way": 1,
-        "time_limit_s": 300,
+        "time_limit_s": 360,
         **geo,
         "start": start_pose(geo["centerline"], lane / 2),
         "speed_limits": [{"from": 0, "to": total, "limit_kmh": 30}],
@@ -208,13 +213,16 @@ def _exam_course() -> dict:
         "signals": [
             {
                 "id": "EX1",
-                "stop_s": round(cross_s + 16, 2),
-                "crosswalk_from": round(cross_s + 17, 2), "crosswalk_to": round(cross_s + 22, 2),
-                "intersection_from": round(cross_s + 23, 2), "intersection_to": round(cross_s + 34, 2),
+                "stop_s": round(cross_s + 14, 2),
+                "crosswalk_from": round(cross_s + 15, 2), "crosswalk_to": round(cross_s + 20, 2),
+                "intersection_from": round(cross_s + 21, 2), "intersection_to": round(cross_s + 32, 2),
                 "green": 10, "yellow": 3, "red": 9, "offset": 2,
             }
         ],
-        "crosswalks": [],
+        "crosswalks": [
+            {"id": "CW1", "from": round(ramp_s + 6, 2), "to": round(ramp_s + 11, 2),
+             "ped_period": 16, "ped_from": 3, "ped_to": 9}
+        ],
         "stages": [
             {"type": "STOP_IN", "from": round(ramp_s + 20, 2), "to": round(ramp_s + 32, 2), "label": "경사로에서 정지"},
             {"type": "STOP_IN", "from": round(park_s + 26, 2), "to": round(park_s + 36, 2), "label": "주차 구역 지나 정차"},
@@ -235,10 +243,10 @@ SCENARIOS = [
     },
     {
         "code": "FUNCTION_EXAM_A",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "kind": "FUNCTION",
         "title": "장내기능 코스",
-        "summary": "출발해서 좌회전, 경사로에서 정지했다가 다시 출발하고, 신호 교차로를 지나 직각주차 구역에 후진으로 넣습니다. 빠져나와 가속 구간을 지나 도착 지점에 정차합니다.",
+        "summary": "출발해서 좌회전하고, 횡단보도를 지나 경사로에서 한 번 멈춥니다. 우회전 뒤 굴절 구간을 통과하고 신호 교차로를 지나, 직각주차 구역에 후진으로 넣습니다. 빠져나와 가속 구간을 지나 도착 지점에 정차합니다.",
         "build": _exam_course,
     },
     {
@@ -341,6 +349,9 @@ def seed(conn: sqlite3.Connection) -> None:
                 "INSERT INTO scenarios(id,code,version,kind,title,summary,sim_version,definition,is_active) VALUES(?,?,?,?,?,?,?,?,1)",
                 (sid, sc["code"], sc["version"], sc["kind"], sc["title"], sc["summary"], SIM_VERSION, jdumps(definition)),
             )
+            # 같은 코스의 이전 버전은 목록에서 내린다. 지우지는 않는다 —
+            # 과거 주행 기록이 그 버전을 가리키고 있고, 결과를 다시 그릴 때 그 정의가 필요하다.
+            conn.execute("UPDATE scenarios SET is_active=0 WHERE code=? AND id<>?", (sc["code"], sid))
             if sc["kind"] == "ROAD":
                 for event_code, (rule_code, _cat) in EVENT_MAP.items():
                     if rule_code:

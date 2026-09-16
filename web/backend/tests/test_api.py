@@ -148,3 +148,19 @@ def test_report_number_validation_rejects_invented_numbers():
     bad = {**good, "summary": "반응 시간이 0.8초 늦습니다"}
     with pytest.raises(ValueError):
         validate_report(bad, stats)
+
+
+def test_complete_accepts_zero_tick_run(alice):
+    # 카운트다운 도중 Esc 로 나가거나 창 포커스를 잃고 나가면 한 틱도 안 지난 채 종료된다.
+    # 이걸 400 으로 막으면 프런트가 "다시 저장" 화면에서 빠져나오지 못한다. 미완료로 남아야 한다.
+    scen = next(s for s in alice.get("/api/v1/scenarios").json()["items"] if s["code"] == "FUNCTION_EXAM_A")
+    sid = alice.post("/api/v1/training/sessions", json={"scenario_id": scen["id"], "input_mode": "KEYBOARD"}).json()["id"]
+    r = alice.post(
+        f"/api/v1/training/sessions/{sid}/complete",
+        json={"total_ticks": 0, "inputs": [], "client_events": [], "end_reason": "USER_END"},
+    )
+    assert r.status_code == 200, r.text
+    out = r.json()
+    assert out["status"] == "INCOMPLETE"
+    assert out["total_ticks"] == 0
+    assert out["events"] == []

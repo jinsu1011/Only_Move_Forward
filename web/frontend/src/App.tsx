@@ -33,7 +33,7 @@ function TopBar() {
     <header className="topbar">
       <div className="topbar-inner">
         <Link to={user ? '/app' : '/'} className="brand">
-          <span className="brand-mark">전</span>
+          <span className="brand-mark">🚘</span>
           전진만할게요
         </Link>
         {user && (

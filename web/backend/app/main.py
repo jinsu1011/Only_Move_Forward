@@ -755,7 +755,9 @@ class ClientEvent(BaseModel):
 
 
 class CompleteIn(BaseModel):
-    total_ticks: int = Field(ge=1, le=TICK_HZ * 600)
+    # 0 틱도 받는다. 카운트다운 도중 Esc 로 나가거나 창 포커스를 잃고 나가면
+    # 한 틱도 안 지난 채 종료되는데, 이걸 거부하면 "다시 저장" 화면에서 영영 빠져나오지 못한다.
+    total_ticks: int = Field(ge=0, le=TICK_HZ * 600)
     inputs: list[list[int]] = Field(max_length=20000)
     client_events: list[ClientEvent] = Field(default_factory=list, max_length=200)
     end_reason: Literal["TERMINAL_EVENT", "USER_END"]

@@ -10,7 +10,7 @@ function Side() {
   return (
     <aside className="auth-side">
       <span className="brand" style={{ color: '#fff' }}>
-        <span className="brand-mark">전</span>전진만할게요
+        <span className="brand-mark">🚘</span>전진만할게요
       </span>
       <h2>
         오늘 틀린 문제와

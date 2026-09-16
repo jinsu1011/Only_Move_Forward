@@ -1354,7 +1354,7 @@ components:
       type: object
       required: [total_ticks, inputs, end_reason]
       properties:
-        total_ticks: { type: integer, minimum: 1, maximum: 18000, description: 30Hz 기준 주행 틱 수 }
+        total_ticks: { type: integer, minimum: 0, maximum: 18000, description: '30Hz 기준 주행 틱 수. 카운트다운 중 나가면 0 이 될 수 있다' }
         inputs:
           type: array
           maxItems: 20000
