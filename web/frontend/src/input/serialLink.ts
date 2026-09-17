@@ -104,15 +104,9 @@ class SerialLink {
     if (!supported()) return
     if (this.snap.status === 'open') return
 
-    // 이미 권한을 받은 장치는 선택 창 없이 먼저 다시 연다. 포트 점유가
-    // 해제된 직후 사용자가 "센서 연결"을 누르면 이 경로로 바로 복구된다.
-    const granted = await navigator.serial.getPorts()
-    const knownPort = preferredPort(granted)
-    if (knownPort) {
-      await this.open(knownPort)
-      return
-    }
-
+    // "센서 연결" 버튼은 항상 장치 선택 창을 띄운다. 이전에 허용한 포트를 말없이
+    // 다시 열면 다른 보드·포트로 바꿀 방법이 없고, 사용자는 버튼이 반응하지 않는다고 느낀다.
+    // 선택 창 없는 재연결은 화면 진입·단절 복구용 reconnectGranted() 가 맡는다.
     this.set({ status: 'requesting', message: '연결할 장치를 선택하세요.' })
     let port: SerialPort
     try {
@@ -137,6 +131,8 @@ class SerialLink {
   private async open(port: SerialPort) {
     this.set({ status: 'opening', message: '포트를 여는 중…', invalidLines: 0, boardInfo: null, lastSample: null, hz: 0 })
     try {
+      // 직전 연결이 끊긴 뒤 아직 닫히지 않은 같은 포트를 다시 고른 경우 먼저 닫는다.
+      if (port.readable || port.writable) await port.close().catch(() => undefined)
       await port.open({ baudRate: 115200 })
       // Arduino CLI 시리얼 모니터와 같은 제어 신호를 사용한다. 일부 UNO의
       // USB-Serial 칩은 DTR/RTS가 꺼져 있으면 열린 포트로 데이터를 보내지 않는다.
