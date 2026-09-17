@@ -1219,16 +1219,126 @@ components:
             stages: { type: integer }
     CourseDefinition:
       type: object
-      description: 시뮬레이션 코스 정의(도로 중심선·차로·신호·보호구역·횡단보도·과제 구간). 브라우저와 서버 엔진이 같은 값을 사용합니다.
-      required: [length_m, time_limit_s, signals, school_zones, crosswalks, stages]
-      additionalProperties: true
+      description: |
+        시뮬레이션 코스 정의. 브라우저 3D 엔진과 서버 재생 엔진이 같은 값을 사용합니다.
+        좌표·거리 단위는 미터(m), 시간은 초(s)입니다. `s` 는 코스 중심선을 따라 출발점에서 잰 거리입니다.
+        배열이 비어 있으면 해당 요소가 없는 코스입니다(예: 기본조작 연습장은 신호·보호구역 없음).
+      required: [kind, sim_version, lane_width, lanes_each_way, time_limit_s, centerline, segment_end_s, length_m, start, speed_limits, school_zones, signals, crosswalks, finish_s, stages]
       properties:
-        length_m: { type: number }
-        time_limit_s: { type: integer }
-        signals: { type: array, items: { type: object, additionalProperties: true } }
-        school_zones: { type: array, items: { type: object, additionalProperties: true } }
-        crosswalks: { type: array, items: { type: object, additionalProperties: true } }
-        stages: { type: array, items: { type: object, additionalProperties: true } }
+        kind: { $ref: '#/components/schemas/ScenarioKind' }
+        sim_version: { type: string, example: sim-1.0.0, description: 판정 엔진 버전. 재생 검증은 같은 버전 엔진으로 수행 }
+        lane_width: { type: number, minimum: 0, example: 3.5, description: 차로 폭(m) }
+        lanes_each_way: { type: integer, minimum: 1, example: 1, description: 방향별 차로 수 }
+        time_limit_s: { type: integer, minimum: 1, example: 240, description: 제한 시간(s). 초과 시 TIME_LIMIT 로 종료 }
+        centerline:
+          type: array
+          minItems: 2
+          description: 도로 중심선 점 목록 [x, y](m). 약 1m 간격
+          items: { $ref: '#/components/schemas/Point2D' }
+        segment_end_s:
+          type: array
+          description: 직선·곡선 구간이 끝나는 지점의 s(m)
+          items: { type: number, minimum: 0 }
+        length_m: { type: number, minimum: 0, example: 523.4, description: 중심선 전체 길이(m) }
+        start: { $ref: '#/components/schemas/StartPose' }
+        speed_limits:
+          type: array
+          description: 구간별 제한속도
+          items: { $ref: '#/components/schemas/SpeedLimitZone' }
+        school_zones:
+          type: array
+          description: 어린이보호구역
+          items: { $ref: '#/components/schemas/SchoolZone' }
+        signals:
+          type: array
+          description: 신호 교차로
+          items: { $ref: '#/components/schemas/TrafficSignal' }
+        crosswalks:
+          type: array
+          description: 신호 없는 횡단보도
+          items: { $ref: '#/components/schemas/Crosswalk' }
+        ramps:
+          type: array
+          description: 경사로(장내기능 코스만). 없으면 평지
+          items: { $ref: '#/components/schemas/Ramp' }
+        finish_s: { type: number, minimum: 0, description: 도착선 s(m). 넘으면 종료 — 과제를 다 못 했으면 FINISH_LINE_EARLY }
+        stages:
+          type: array
+          description: 순서대로 수행할 정차 과제. 도로주행 코스는 빈 배열
+          items: { $ref: '#/components/schemas/CourseStage' }
+    Point2D:
+      type: array
+      description: '[x, y] 좌표(m)'
+      minItems: 2
+      maxItems: 2
+      items: { type: number }
+      example: [0, 0]
+    StartPose:
+      type: object
+      description: 출발 위치와 방향
+      required: [x, y, heading]
+      properties:
+        x: { type: number, description: m }
+        y: { type: number, description: m }
+        heading: { type: number, description: '진행 방향(라디안, +x 축 기준 반시계)' }
+    SpeedLimitZone:
+      type: object
+      required: [from, to, limit_kmh]
+      properties:
+        from: { type: number, minimum: 0, description: 시작 s(m) }
+        to: { type: number, minimum: 0, description: 끝 s(m) }
+        limit_kmh: { type: integer, minimum: 1, example: 50 }
+    SchoolZone:
+      type: object
+      required: [id, from, to, limit_kmh]
+      properties:
+        id: { type: string, example: Z1 }
+        from: { type: number, minimum: 0, description: 시작 s(m) }
+        to: { type: number, minimum: 0, description: 끝 s(m) }
+        limit_kmh: { type: integer, minimum: 1, example: 30 }
+    TrafficSignal:
+      type: object
+      description: 신호 주기는 green → yellow → red 순서로 반복합니다. 시각 t(s)의 위상은 (t + offset) mod (green + yellow + red).
+      required: [id, stop_s, crosswalk_from, crosswalk_to, intersection_from, intersection_to, green, yellow, red, offset]
+      properties:
+        id: { type: string, example: L1 }
+        stop_s: { type: number, minimum: 0, description: 정지선 s(m) }
+        crosswalk_from: { type: number, minimum: 0, description: 신호 횡단보도 시작 s(m) }
+        crosswalk_to: { type: number, minimum: 0, description: 신호 횡단보도 끝 s(m) }
+        intersection_from: { type: number, minimum: 0, description: 교차로 시작 s(m) }
+        intersection_to: { type: number, minimum: 0, description: 교차로 끝 s(m) }
+        green: { type: number, minimum: 0, example: 9, description: 녹색 시간(s) }
+        yellow: { type: number, minimum: 0, example: 3, description: 황색 시간(s) }
+        red: { type: number, minimum: 0, example: 10, description: 적색 시간(s) }
+        offset: { type: number, minimum: 0, example: 3, description: 주기 시작 오프셋(s) }
+    Crosswalk:
+      type: object
+      description: 보행자는 매 ped_period 초 주기 중 [ped_from, ped_to) 동안 건넙니다.
+      required: [id, from, to, ped_period, ped_from, ped_to]
+      properties:
+        id: { type: string, example: P1 }
+        from: { type: number, minimum: 0, description: 시작 s(m) }
+        to: { type: number, minimum: 0, description: 끝 s(m) }
+        ped_period: { type: number, minimum: 0, example: 18, description: 보행자 주기(s). 0 이면 보행자 없음 }
+        ped_from: { type: number, minimum: 0, example: 4, description: 주기 안 횡단 시작(s) }
+        ped_to: { type: number, minimum: 0, example: 11, description: 주기 안 횡단 끝(s) }
+    Ramp:
+      type: object
+      description: 구간 안에서 기울기가 일정한 경사
+      required: [from, to, rise_m]
+      properties:
+        from: { type: number, minimum: 0, description: 시작 s(m) }
+        to: { type: number, minimum: 0, description: 끝 s(m) }
+        rise_m: { type: number, example: 1.6, description: 구간 동안의 높이 변화(m). 음수면 내리막 }
+    CourseStage:
+      type: object
+      description: 정차 과제. 구간 [from, to] 안에서 속도 0 으로 1초 머물면 통과. REVERSE_STOP_IN 은 후진으로 들어와야 함
+      required: [type, from, to, label]
+      properties:
+        type: { type: string, enum: [STOP_IN, REVERSE_STOP_IN] }
+        from: { type: number, minimum: 0, description: 시작 s(m) }
+        to: { type: number, minimum: 0, description: 끝 s(m) }
+        label: { type: string, example: 경사로에서 정지 }
     PracticeRule:
       type: object
       required: [code, name_ko, kind, deduction_points, support, method, limitations, locator, event_codes, event_labels]

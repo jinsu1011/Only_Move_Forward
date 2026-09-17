@@ -57,7 +57,9 @@ with TestClient(app) as c:
 
     items = call(c, "GET", "/scenarios", "/scenarios", 200)["items"]
     road = next(s for s in items if s["kind"] == "ROAD")
-    call(c, "GET", "/scenarios/{scenarioId}", f"/scenarios/{road['id']}", 200)
+    # 코스 정의 스키마를 코스 종류마다 검증하도록 모든 코스 상세를 호출한다(기본조작·장내기능·도로주행).
+    for sc in items:
+        call(c, "GET", "/scenarios/{scenarioId}", f"/scenarios/{sc['id']}", 200)
     call(c, "GET", "/scenarios/{scenarioId}", f"/scenarios/{uuid.uuid4()}", 404)
     call(c, "GET", "/scoring-rules", "/scoring-rules", 200)
     call(c, "POST", "/training/sessions", "/training/sessions", 400, json={"scenario_id": road["id"], "input_mode": "SENSOR"})

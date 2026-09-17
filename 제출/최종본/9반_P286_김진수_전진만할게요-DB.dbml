@@ -320,11 +320,11 @@ Table training_sessions {
   total_ticks int [note: '30Hz 틱. CHECK ≥ 0']
   input_log jsonb [note: '[tick, throttle, steer] 변화 기록 — 서버 재생 원본']
   input_hash char(64) [note: '같은 입력 재전송 판별']
-  pause_count int [not null, default: 0]
+  pause_count int [not null, default: 0, note: 'CHECK pause_count >= 0']
   end_reason varchar(30) [note: 'COURSE_COMPLETE, TIME_LIMIT, USER_END, RESTART, SENSOR_LOST, USER_EXIT, SUPERSEDED']
   distance_m real
   max_speed_kmh real
-  reference_deduction smallint [note: '도로 코스 참고 감점 합 (공식 채점 아님)']
+  reference_deduction smallint [note: '도로 코스 참고 감점 합 (공식 채점 아님) · CHECK NULL 또는 >= 0']
   indexes {
     (user_id, started_at)
   }
@@ -338,7 +338,7 @@ Table driving_events {
   event_code varchar(40) [not null, note: 'SIGNAL_RED, SPEEDING, LANE_KEEP, COURSE_COMPLETE …']
   rule_id uuid [ref: > official_scoring_rules.id, note: '연결 공식 항목 (기본조작·완주 사건은 null)']
   category_id varchar(30) [not null, ref: > categories.id]
-  tick int [not null]
+  tick int [not null, note: 'CHECK tick >= 0']
   s_m real [not null, note: '코스 진행 거리']
   speed_kmh real [not null, note: 'CHECK ≥ 0']
   is_terminal boolean [not null]
